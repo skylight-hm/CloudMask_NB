@@ -12,6 +12,7 @@ Welcome to MeteSatPy's documentation!
    contributing
    authors
    history
+   design
 
 Indices and tables
 ==================
