@@ -4,17 +4,17 @@
 
 from setuptools import setup, find_packages
 
-with open('README.md') as readme_file:
+with open('README.md', encoding='UTF-8') as readme_file:
     readme = readme_file.read()
 
-with open('HISTORY.rst') as history_file:
+with open('HISTORY.rst', encoding='UTF-8') as history_file:
     history = history_file.read()
 
-requirements = [ ]
+requirements = []
 
-setup_requirements = [ ]
+setup_requirements = []
 
-test_requirements = [ ]
+test_requirements = []
 
 setup(
     author="min han",
