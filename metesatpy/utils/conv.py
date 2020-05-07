@@ -87,7 +87,17 @@ def im2col_cpu(
     return col
 
 
-def cal_nxn_indices(array, n=2, func=numpy.max):
+def cal_nxn_indices(array: numpy.ndarray, n: int = 1, func=numpy.max) -> numpy.ndarray:
+    """以numpy数组的每个元素为中心,计算附近nxn个,共(2n+1,2n+1)像元的统计值.
+
+    Args:
+        array (numpy.ndarray): 数组.
+        n (int): 视窗大小.
+        func: 统计函数,默认为求取最大值.
+
+    Returns:
+        array_indices (numpy.ndarray): 统计指数数组.
+    """
     array = array[numpy.newaxis, numpy.newaxis]
     k_h = 2 * n + 1
     k_w = 2 * n + 1

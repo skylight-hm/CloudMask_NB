@@ -2,9 +2,10 @@ import unittest
 
 import os
 
-from metesatpy.production import FY4AAGRIL1FDIDISK4KM
-
 import matplotlib.pyplot as plt
+
+from metesatpy.production import FY4AAGRIL1FDIDISK4KM
+from metesatpy.production.FY4A import FY4NavFile
 
 data_root_dir = os.getenv('METEPY_DATA_PATH', 'data')
 
@@ -31,6 +32,17 @@ class TestFY4AAGRI(unittest.TestCase):
 
     def tearDown(self) -> None:
         pass
+
+
+class TestFY4ANav(unittest.TestCase):
+
+    def test_surface_prepare(self):
+        nav_file_name = 'fygatNAV.FengYun-4A.xxxxxxx.4km.hdf'
+        nav_file_path = os.path.join(data_root_dir, nav_file_name)
+        fy4_nav = FY4NavFile(nav_file_path)
+        sft_nb = fy4_nav.prepare_surface_type_to_cspp()
+        plt.imshow(sft_nb)
+        plt.show()
 
 
 if __name__ == '__main__':

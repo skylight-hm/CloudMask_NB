@@ -1,2 +1,3 @@
 from .ProductionBase import ProductionBase
 from .FY4A.AGRI.L1.FDI.DISK import FY4AAGRIL1FDIDISK4KM
+from .FY4A.AGRI.L1.GEO.DISK import FY4AAGRIL1GEODISK4KM
