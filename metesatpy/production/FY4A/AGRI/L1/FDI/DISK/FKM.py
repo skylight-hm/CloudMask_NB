@@ -1,11 +1,13 @@
 from .DISK import FY4AAGRIL1FDIDISKProduction
 
+import os
 import traceback
 from pprint import pprint
 from dataclasses import dataclass
 
 import h5py
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 @dataclass
@@ -38,6 +40,42 @@ class FY4AAGRIL1FDIDISK4KM(FY4AAGRIL1FDIDISKProduction):
                                             center_wave_length='1.61um',
                                             data_ds_name='NOMChannel05',
                                             cal_ds_name='CALChannel05'),
+        'ref_222': FY4AAGRIL1FDIDISKChannel(short_name='ref_222',
+                                            center_wave_length='2.22um',
+                                            data_ds_name='NOMChannel06',
+                                            cal_ds_name='CALChannel06'),
+        'bt_372_low': FY4AAGRIL1FDIDISKChannel(short_name='bt_372_low',
+                                               center_wave_length='3.72um',
+                                               data_ds_name='NOMChannel07',
+                                               cal_ds_name='CALChannel07'),
+        'bt_372_high': FY4AAGRIL1FDIDISKChannel(short_name='bt_372_high',
+                                                center_wave_length='3.72um',
+                                                data_ds_name='NOMChannel08',
+                                                cal_ds_name='CALChannel08'),
+        'bt_625': FY4AAGRIL1FDIDISKChannel(short_name='bt_625',
+                                           center_wave_length='6.25um',
+                                           data_ds_name='NOMChannel09',
+                                           cal_ds_name='CALChannel09'),
+        'bt_710': FY4AAGRIL1FDIDISKChannel(short_name='bt_710',
+                                           center_wave_length='7.10um',
+                                           data_ds_name='NOMChannel10',
+                                           cal_ds_name='CALChannel10'),
+        'bt_850': FY4AAGRIL1FDIDISKChannel(short_name='bt_850',
+                                           center_wave_length='8.50um',
+                                           data_ds_name='NOMChannel11',
+                                           cal_ds_name='CALChannel11'),
+        'bt_1080': FY4AAGRIL1FDIDISKChannel(short_name='bt_1080',
+                                            center_wave_length='10.80um',
+                                            data_ds_name='NOMChannel12',
+                                            cal_ds_name='CALChannel12'),
+        'bt_1200': FY4AAGRIL1FDIDISKChannel(short_name='bt_1200',
+                                            center_wave_length='12.00um',
+                                            data_ds_name='NOMChannel13',
+                                            cal_ds_name='CALChannel13'),
+        'bt_1350': FY4AAGRIL1FDIDISKChannel(short_name='bt_1350',
+                                            center_wave_length='13.50um',
+                                            data_ds_name='NOMChannel14',
+                                            cal_ds_name='CALChannel14')
     }
 
     def __init__(self, fname: str = None, **kwargs):
@@ -85,3 +123,23 @@ class FY4AAGRIL1FDIDISK4KM(FY4AAGRIL1FDIDISKProduction):
 
     def export(self, fname: str) -> int:
         return 0
+
+    def plot(self, **kwargs):
+        plot_type = kwargs.get('flag', 'vis')
+        if plot_type == 'vis':
+            r = self.get_band_by_channel('ref_047')
+            g = self.get_band_by_channel('ref_065')
+            b = self.get_band_by_channel('ref_083')
+            img = np.dstack((r, g, b))
+            title = kwargs.get('title', 'visual color\n' + os.path.basename(self.fname))
+        elif plot_type == 'ir':
+            dn = self.get_band_by_channel('bt_625')
+            img = dn
+            title = kwargs.get('title', 'bt dn\n' + os.path.basename(self.fname))
+        else:
+            img = None
+        fig, ax = plt.subplots(1, 1)
+        pos = ax.imshow(img, 'gray')
+        ax.set_title(title)
+        fig.colorbar(pos, ax=ax)
+        return fig

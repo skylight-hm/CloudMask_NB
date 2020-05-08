@@ -24,17 +24,19 @@ class TestCLMClassifiers(unittest.TestCase):
         fy4_nav_file_name = 'fygatNAV.FengYun-4A.xxxxxxx.4km.hdf'
         fy4_nav_file_path = os.path.join(data_root_dir, fy4_nav_file_name)
 
-        lut_nc_path = ''
-        lut_file_name = 'modis_default_nb_cloud_mask_lut.nc'
+        lut_file_name = 'Ref_063_Min_3x3_Day.nc'
         lut_file_path = os.path.join(data_root_dir, 'LUT', lut_file_name)
 
         l1 = FY4AAGRIL1FDIDISK4KM(agri_l1_file_path)
         geo = FY4AAGRIL1GEODISK4KM(agri_geo_file_path)
         nav = FY4NavFile(fy4_nav_file_path)
-
-        ref_036 = Ref063Min3x3Day(lut_nc_path=lut_file_path)
-        ratio = ref_036.infer(l1, geo, nav)
-        plt.imshow(ratio)
+        ref_036 = Ref063Min3x3Day(lut_file_path=lut_file_path)
+        ratio = ref_036.infer(l1, geo, nav, prob=True)
+        plt.imshow(ratio, 'plasma')
+        plt.colorbar()
+        # plt.axis('off')
+        # plt.title(ref_036.short_name + ' Ratio \n' + agri_l1_file_name)
+        plt.title(ref_036.short_name + ' Prob \n' + agri_l1_file_name)
         plt.show()
 
 

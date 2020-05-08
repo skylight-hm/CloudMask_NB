@@ -27,8 +27,15 @@ class TestFY4AAGRI(unittest.TestCase):
         l1 = FY4AAGRIL1FDIDISK4KM(self.agri_l1_file_path)
         l1.print_available_channels()
 
-    def test_(self) -> None:
-        pass
+    def test_plot(self) -> None:
+        l1 = FY4AAGRIL1FDIDISK4KM(self.agri_l1_file_path)
+        l1.plot()
+        plt.show()
+
+    def test_plot_ir(self) -> None:
+        l1 = FY4AAGRIL1FDIDISK4KM(self.agri_l1_file_path)
+        l1.plot(flag='ir')
+        plt.show()
 
     def tearDown(self) -> None:
         pass

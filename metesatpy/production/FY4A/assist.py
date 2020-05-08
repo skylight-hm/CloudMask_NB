@@ -37,7 +37,7 @@ class FY4NavFile(object):
             'Desert': 7,
         }
 
-    def prepare_surface_type_to_cspp(self) -> np.ndarray:
+    def prepare_surface_type_to_cspp(self, space_mask=False) -> np.ndarray:
         nav_f = h5py.File(self.fy4_nav_file_path)
         lat = nav_f['pixel_latitude'][...]
         lon = nav_f['pixel_longitude'][...]
@@ -72,6 +72,9 @@ class FY4NavFile(object):
         desert_idx = np.logical_or(desert_mask == self.ET_Desert_class['NIR_DESERT'],
                                    desert_mask == self.ET_Desert_class['BRIGHT_DESERT'])
         nb_sft[desert_idx] = self.ET_SFT_class['Desert']
+        if space_mask:
+            mask = self.get_space_mask(b=True)
+            nb_sft = np.ma.masked_array(nb_sft, mask)
         return nb_sft
 
     def get_dem(self) -> np.ndarray:
@@ -83,3 +86,10 @@ class FY4NavFile(object):
         nav_f = h5py.File(self.fy4_nav_file_path)
         coast = nav_f['pixel_coast_mask'][...]
         return coast
+
+    def get_space_mask(self, b=False) -> np.ndarray:
+        nav_f = h5py.File(self.fy4_nav_file_path)
+        space_mask = nav_f['pixel_space_mask'][...]
+        if b:
+            space_mask = space_mask.astype(np.bool)
+        return space_mask
