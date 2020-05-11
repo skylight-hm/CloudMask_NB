@@ -65,10 +65,6 @@ class FY4AAGRIL1GEODISK4KM(FY4AAGRIL1GEODISKProduction):
     def infer_air_mass(self):
         son_zen = self.get_satellite_zenith()
         sol_zen = self.get_sun_zenith()
-        dtor = np.pi / 180
-        cos_zen = np.cos(dtor * son_zen)
-        cos_solar_zen = np.cos(dtor * sol_zen)
-        air_mass = np.where(np.logical_and(cos_zen != 0, cos_solar_zen != 0),
-                            1.0 / cos_solar_zen + 1.0 / cos_zen,
-                            np.ones(cos_solar_zen.shape))
+        from utils.cspp import infer_airmass
+        air_mass = infer_airmass(son_zen, sol_zen)
         return air_mass

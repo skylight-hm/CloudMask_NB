@@ -93,3 +93,13 @@ class FY4NavFile(object):
         if b:
             space_mask = space_mask.astype(np.bool)
         return space_mask
+
+    def get_latitude(self) -> np.ndarray:
+        nav_f = h5py.File(self.fy4_nav_file_path)
+        latitude = nav_f['pixel_latitude'][...]
+        return latitude
+
+    def get_longitude(self) -> np.ndarray:
+        nav_f = h5py.File(self.fy4_nav_file_path)
+        longitude = nav_f['pixel_longitude'][...]
+        return longitude

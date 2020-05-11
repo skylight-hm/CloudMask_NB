@@ -78,9 +78,13 @@ class FY4AAGRIL1FDIDISK4KM(FY4AAGRIL1FDIDISKProduction):
                                             cal_ds_name='CALChannel14')
     }
 
+    # filename_pattern = 'FY4A-_AGRI--_N_DISK_1047E_L1-_FDI-_MULT_NOM_20200101121500_20200101122959_4000M_V0001.HDF'
+
     def __init__(self, fname: str = None, **kwargs):
         super(FY4AAGRIL1FDIDISK4KM, self).__init__()
         self.fname = fname
+        self.fdir = os.path.dirname(fname)
+        self.fbname = os.path.basename(fname)
 
     def get_channel(self, name: str, **kwargs) -> FY4AAGRIL1FDIDISKChannel:
         return self.channel_table[name]
@@ -101,7 +105,7 @@ class FY4AAGRIL1FDIDISK4KM(FY4AAGRIL1FDIDISKProduction):
     def set_band(self, name: str, **kwargs) -> np.ndarray:
         pass
 
-    def get_band_by_channel(self, name: str, **kwargs) -> np.ndarray:
+    def get_band_by_channel(self, name: str, **kwargs) -> np.ma.masked_array:
         try:
             f = h5py.File(self.fname, 'r')
             channel_cursor = self.channel_table[name]
@@ -132,14 +136,19 @@ class FY4AAGRIL1FDIDISK4KM(FY4AAGRIL1FDIDISKProduction):
             b = self.get_band_by_channel('ref_083')
             img = np.dstack((r, g, b))
             title = kwargs.get('title', 'visual color\n' + os.path.basename(self.fname))
+            fig, ax = plt.subplots(1, 1)
+            pos = ax.imshow(img, 'gray')
+            ax.set_title(title)
+            fig.colorbar(pos, ax=ax)
         elif plot_type == 'ir':
             dn = self.get_band_by_channel('bt_625')
             img = dn
             title = kwargs.get('title', 'bt dn\n' + os.path.basename(self.fname))
+            fig, ax = plt.subplots(1, 1)
+            pos = ax.imshow(img, 'gray')
+            ax.set_title(title)
+            fig.colorbar(pos, ax=ax)
         else:
             img = None
-        fig, ax = plt.subplots(1, 1)
-        pos = ax.imshow(img, 'gray')
-        ax.set_title(title)
-        fig.colorbar(pos, ax=ax)
+            return None
         return fig
