@@ -51,6 +51,14 @@ class TestFY4ANav(unittest.TestCase):
         plt.imshow(sft_nb)
         plt.show()
 
+    def test_surface_prepare1(self):
+        nav_file_name = 'fygatNAV.FengYun-4A.xxxxxxx.4km.hdf'
+        nav_file_path = os.path.join(data_root_dir, nav_file_name)
+        fy4_nav = FY4NavFile(nav_file_path)
+        snow_mask = fy4_nav.get_snow_mask()
+        plt.imshow(snow_mask)
+        plt.show()
+
 
 if __name__ == '__main__':
     unittest.main()

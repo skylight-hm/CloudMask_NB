@@ -4,7 +4,7 @@ import os
 
 from metesatpy.production import FY4AAGRIL1FDIDISK4KM, FY4AAGRIL1GEODISK4KM
 from metesatpy.production.FY4A import FY4NavFile
-from metesatpy.algorithms.CloudMask import Ref063Min3x3Day, TStd, RefRatioDay, Ref138Day, NdsiDay, Ref063Day
+from metesatpy.algorithms.CloudMask import Ref063Min3x3Day, TStd, RefRatioDay, Ref138Day, NdsiDay, Ref063Day, Bt1185
 from metesatpy.utils.cspp import infer_great_circle, infer_relative_azimuth, infer_scat_angle, infer_airmass
 
 import numpy as np
@@ -91,6 +91,32 @@ class TestCLMClassifiers(unittest.TestCase):
         ax[1].axis('off')
         plt.show()
 
+    def test_Bt1185(self):
+        lut_file_name = 'Btd_11_85.nc'
+        lut_file_path = os.path.join(data_root_dir, 'LUT', lut_file_name)
+        # obs mask
+        bt_1080 = self.fy4_l1.get_band_by_channel('bt_1080')
+        bt_850 = self.fy4_l1.get_band_by_channel('bt_850')
+        # dem mask
+        sft = self.fy4_nav.prepare_surface_type_to_cspp()
+        # space mask
+        space_mask = self.fy4_nav.get_space_mask(b=True)
+
+        bt1185 = Bt1185(lut_file_path=lut_file_path)
+        x = bt1185.prepare_feature(bt_1080, bt_850)
+        valid_mask = bt1185.prepare_valid_mask(bt_1080, bt_850, space_mask)
+        ratio, prob = bt1185.infer(x, sft, valid_mask, space_mask, prob=True)
+        fig, ax = plt.subplots(1, 3, figsize=(10, 10))
+        ax[0].imshow(valid_mask, 'plasma')
+        ax[0].set_title(bt1185.short_name + ' valid mask \n')
+        pos = ax[1].imshow(ratio, 'plasma')
+        ax[1].set_title(bt1185.short_name + ' Ratio \n')
+        fig.colorbar(pos, ax=ax[1])
+        pos = ax[2].imshow(prob, 'plasma', vmin=0, vmax=1)
+        ax[2].set_title(bt1185.short_name + ' Prob \n')
+        fig.colorbar(pos, ax=ax[2])
+        plt.show()
+
     def test_RefRatioDay(self):
         lut_file_name = 'Ref_Ratio_Day.nc'
         lut_file_path = os.path.join(data_root_dir, 'LUT', lut_file_name)
@@ -149,8 +175,7 @@ class TestCLMClassifiers(unittest.TestCase):
 
         ref138day = Ref138Day(lut_file_path=lut_file_path)
         x = ref138day.prepare_feature(ref_137)
-        valid_mask = ref138day.prepare_valid_mask(ref_137, dem, sft, sun_zen, scat_ang, air_mass, coastal_mask,
-                                                  space_mask)
+        valid_mask = ref138day.prepare_valid_mask(ref_137, dem, sft, sun_zen, scat_ang, air_mass, space_mask)
         ratio, prob = ref138day.infer(x, sft, valid_mask, space_mask, prob=True)
         fig, ax = plt.subplots(1, 3, figsize=(10, 10))
         ax[0].imshow(valid_mask, 'plasma')
@@ -186,15 +211,11 @@ class TestCLMClassifiers(unittest.TestCase):
         air_mass = infer_airmass(sat_zen, sun_zen)
         # sft
         sft = self.fy4_nav.prepare_surface_type_to_cspp()
-        # coastal mask
-        coastal = self.fy4_nav.get_coastal()
-        coastal_mask = coastal > 0
         # space mask
         space_mask = self.fy4_nav.get_space_mask(b=True)
         ndsi = NdsiDay(lut_file_path=lut_file_path)
         x = ndsi.prepare_feature(ref_065, ref_161)
-        valid_mask = ndsi.prepare_valid_mask(ref_065, ref_161, sun_glint, sun_zen, scat_ang, air_mass, coastal_mask,
-                                             space_mask,
+        valid_mask = ndsi.prepare_valid_mask(ref_065, ref_161, sun_glint, sun_zen, scat_ang, air_mass, space_mask,
                                              bt_1080)
         ratio, prob = ndsi.infer(x, sft, valid_mask, space_mask, prob=True)
         fig, ax = plt.subplots(1, 3, figsize=(10, 10))
@@ -257,16 +278,16 @@ class TestCLMClassifiers(unittest.TestCase):
         # dem
         dem = self.fy4_nav.get_dem()
         sft = self.fy4_nav.prepare_surface_type_to_cspp()
-        # coastal mask
-        coastal = self.fy4_nav.get_coastal()
-        coastal_mask = coastal > 0
+        # snow mask
+        snow_mask = self.fy4_nav.get_snow_mask()
+        snow_mask = snow_mask == 3
         # space mask
         space_mask = self.fy4_nav.get_space_mask(b=True)
 
         ref063day = Ref063Day(lut_file_path=lut_file_path)
         x = ref063day.prepare_feature(ref_065, ref_065_clear_c)
-        valid_mask = ref063day.prepare_valid_mask(ref_065, ref_065_clear_c, dem, sft, sun_glint, scat_ang, air_mass,
-                                                  snow_mask, space_mask)
+        valid_mask = ref063day.prepare_valid_mask(ref_065, ref_065_clear_c, dem, sft, sun_glint, sun_zen, scat_ang,
+                                                  air_mass, snow_mask, space_mask, bt_1080)
         ratio, prob = ref063day.infer(x, sft, valid_mask, space_mask, prob=True)
         fig, ax = plt.subplots(1, 3, figsize=(10, 10))
         ax[0].imshow(valid_mask, 'plasma')

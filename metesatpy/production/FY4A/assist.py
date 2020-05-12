@@ -103,3 +103,8 @@ class FY4NavFile(object):
         nav_f = h5py.File(self.fy4_nav_file_path)
         longitude = nav_f['pixel_longitude'][...]
         return longitude
+
+    def get_snow_mask(self):
+        nav_f = h5py.File(self.fy4_nav_file_path)
+        snow = nav_f['pixel_snow_mask'][...]
+        return snow
