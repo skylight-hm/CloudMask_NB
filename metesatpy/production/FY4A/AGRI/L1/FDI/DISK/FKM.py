@@ -1,6 +1,7 @@
 from .DISK import FY4AAGRIL1FDIDISKProduction
 
 import os
+import datetime
 import traceback
 from pprint import pprint
 from dataclasses import dataclass
@@ -78,13 +79,22 @@ class FY4AAGRIL1FDIDISK4KM(FY4AAGRIL1FDIDISKProduction):
                                             cal_ds_name='CALChannel14')
     }
 
-    # filename_pattern = 'FY4A-_AGRI--_N_DISK_1047E_L1-_FDI-_MULT_NOM_20200101121500_20200101122959_4000M_V0001.HDF'
-
     def __init__(self, fname: str = None, **kwargs):
         super(FY4AAGRIL1FDIDISK4KM, self).__init__()
-        self.fname = fname
-        self.fdir = os.path.dirname(fname)
-        self.fbname = os.path.basename(fname)
+        try:
+            self.fname = fname
+            self.fdir = os.path.dirname(fname)
+            self.fbname = os.path.basename(fname)
+            sdt_str = self.fbname.split('_')[9]
+            edt_str = self.fbname.split('_')[10]
+            self.start_time_stamp = datetime.datetime.strptime(sdt_str, '%Y%m%d%H%M%S')
+            self.end_time_stamp = datetime.datetime.strptime(edt_str, '%Y%m%d%H%M%S')
+        except Exception as e:
+            print(e)
+
+    @property
+    def file_name_pattern(self):
+        return "FY4A-_AGRI--_N_DISK_1047E_L1-_FDI-_MULT_NOM_[0-9._]{29}_4000M_V0001.HDF"
 
     def get_channel(self, name: str, **kwargs) -> FY4AAGRIL1FDIDISKChannel:
         return self.channel_table[name]
@@ -92,7 +102,7 @@ class FY4AAGRIL1FDIDISK4KM(FY4AAGRIL1FDIDISKProduction):
     def print_available_channels(self):
         pprint(self.channel_table)
 
-    def get_data_by_name(self, name: str, **kwargs):
+    def get_data_by_name(self, name: str, **kwargs) -> np.ma.masked_array:
         try:
             f = h5py.File(self.fname, 'r')
             data = self._decorate_ds_data(f[name])
@@ -102,7 +112,7 @@ class FY4AAGRIL1FDIDISK4KM(FY4AAGRIL1FDIDISKProduction):
             print(e)
             traceback.print_exc()
 
-    def set_band(self, name: str, **kwargs) -> np.ndarray:
+    def set_band(self, name: str, **kwargs) -> int:
         pass
 
     def get_band_by_channel(self, name: str, **kwargs) -> np.ma.masked_array:

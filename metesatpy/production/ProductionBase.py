@@ -1,9 +1,13 @@
+import datetime
+
 import numpy as np
 import h5py
 
 
 class ProductionBase(object):
     fname: str = None
+    start_time_stamp: datetime.datetime
+    end_time_stamp: datetime.datetime
 
     def __init__(self):
         super(ProductionBase, self).__init__()

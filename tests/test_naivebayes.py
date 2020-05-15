@@ -2,12 +2,6 @@ import unittest
 
 import os
 
-import numpy as np
-import matplotlib.pyplot as plt
-
-from metesatpy.production import FY4AAGRIL1FDIDISK4KM
-from metesatpy.algorithms.CloudMask import NaiveBayes
-
 data_root_dir = os.getenv('METEPY_DATA_PATH', 'data')
 
 

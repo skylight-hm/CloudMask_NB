@@ -4,8 +4,7 @@ import os
 
 import matplotlib.pyplot as plt
 
-from metesatpy.production import FY4AAGRIL1FDIDISK4KM
-from metesatpy.production.FY4A import FY4NavFile
+from metesatpy.production.FY4A import FY4NavFile, FY4AAGRIL1FDIDISK4KM, FY4AAGRICLM4KM
 
 data_root_dir = os.getenv('METEPY_DATA_PATH', 'data')
 
@@ -57,6 +56,19 @@ class TestFY4ANav(unittest.TestCase):
         fy4_nav = FY4NavFile(nav_file_path)
         snow_mask = fy4_nav.get_snow_mask()
         plt.imshow(snow_mask)
+        plt.show()
+
+
+class TestFY4ACLM(unittest.TestCase):
+
+    def setUp(self) -> None:
+        agri_clm_file_name = 'FY4A-_AGRI--_N_DISK_1047E_L2-_CLM-_MULT_' \
+                             'NOM_20200101120000_20200101121459_4000M_V0001.NC'
+        self.agri_clm_file_path = os.path.join(data_root_dir, '20200101', agri_clm_file_name)
+
+    def test_plot_clm(self):
+        fy4_clm = FY4AAGRICLM4KM(self.agri_clm_file_path)
+        fig = fy4_clm.plot()
         plt.show()
 
 

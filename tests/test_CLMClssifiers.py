@@ -2,10 +2,9 @@ import unittest
 
 import os
 
-from metesatpy.production import FY4AAGRIL1FDIDISK4KM, FY4AAGRIL1GEODISK4KM
-from metesatpy.production.FY4A import FY4NavFile
+from metesatpy.production.FY4A import FY4NavFile, FY4AAGRIL1FDIDISK4KM, FY4AAGRIL1GEODISK4KM
 from metesatpy.algorithms.CloudMask import Ref063Min3x3Day, TStd, RefRatioDay, Ref138Day, NdsiDay, Ref063Day, Bt1185
-from metesatpy.utils.cspp import infer_great_circle, infer_relative_azimuth, infer_scat_angle, infer_airmass
+from metesatpy.utils.cspp import infer_airmass, infer_scat_angle_short
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -130,19 +129,19 @@ class TestCLMClassifiers(unittest.TestCase):
 
         # space mask
         space_mask = self.fy4_nav.get_space_mask(b=True)
-
-        refratioday = RefRatioDay(lut_file_path=lut_file_path)
-        x = refratioday.prepare_feature(ref_065, ref_083)
-        valid_mask = refratioday.prepare_valid_mask(ref_065, ref_083, dem, sft, sun_zen, sun_glint, space_mask, bt_1080)
-        ratio, prob = refratioday.infer(x, sft, valid_mask, space_mask, prob=True)
+        ref_ratio_day = RefRatioDay(lut_file_path=lut_file_path)
+        x = ref_ratio_day.prepare_feature(ref_065, ref_083)
+        valid_mask = ref_ratio_day.prepare_valid_mask(ref_065, ref_083, dem, sft, sun_zen, sun_glint, space_mask,
+                                                      bt_1080)
+        ratio, prob = ref_ratio_day.infer(x, sft, valid_mask, space_mask, prob=True)
         fig, ax = plt.subplots(1, 3, figsize=(10, 10))
         ax[0].imshow(valid_mask, 'plasma')
-        ax[0].set_title(refratioday.short_name + ' valid mask \n')
+        ax[0].set_title(ref_ratio_day.short_name + ' valid mask \n')
         pos = ax[1].imshow(ratio, 'plasma')
-        ax[1].set_title(refratioday.short_name + ' Ratio \n')
+        ax[1].set_title(ref_ratio_day.short_name + ' Ratio \n')
         fig.colorbar(pos, ax=ax[1])
         pos = ax[2].imshow(prob, 'plasma', vmin=0, vmax=1)
-        ax[2].set_title(refratioday.short_name + ' Prob \n')
+        ax[2].set_title(ref_ratio_day.short_name + ' Prob \n')
         fig.colorbar(pos, ax=ax[2])
         plt.show()
 
@@ -158,10 +157,8 @@ class TestCLMClassifiers(unittest.TestCase):
         pix_lon = self.fy4_nav.get_longitude()
         sat_lat = 0
         sat_lon = 104.7
-        # scat_ang
-        geo_x = infer_great_circle(pix_lat, pix_lon, sat_lat, sat_lon)
-        rel_azi = infer_relative_azimuth(geo_x, sun_zen)
-        scat_ang = infer_scat_angle(sun_zen, sat_zen, rel_azi)
+        # scatter angle
+        scat_ang = infer_scat_angle_short(pix_lat, pix_lon, sat_lat, sat_lon, sun_zen, sat_zen)
         # air mass
         air_mass = infer_airmass(sat_zen, sun_zen)
         # dem mask
@@ -203,10 +200,8 @@ class TestCLMClassifiers(unittest.TestCase):
         sun_glint = self.fy4_geo.get_sun_glint()
         sat_lat = 0
         sat_lon = 104.7
-        # scat_ang
-        geo_x = infer_great_circle(pix_lat, pix_lon, sat_lat, sat_lon)
-        rel_azi = infer_relative_azimuth(geo_x, sun_zen)
-        scat_ang = infer_scat_angle(sun_zen, sat_zen, rel_azi)
+        # scatter angle
+        scat_ang = infer_scat_angle_short(pix_lat, pix_lon, sat_lat, sat_lon, sun_zen, sat_zen)
         # air mass
         air_mass = infer_airmass(sat_zen, sun_zen)
         # sft
@@ -235,7 +230,7 @@ class TestCLMClassifiers(unittest.TestCase):
         # 063 ref
         import h5py
         from pyresample import image, geometry
-        rc_file = r"D:\WorkSpace\20200429\project\data\LUT\ref_065_clear_001.h5"
+        rc_file = os.path.join(data_root_dir, 'LUT', "ref_065_clear_001.h5")
         rc_f = h5py.File(rc_file, 'r')
         ds = rc_f['ref_065_clear']
         ref_065_clear_gll = np.ma.masked_values(ds[...], ds.attrs['fill_value'])
@@ -269,10 +264,8 @@ class TestCLMClassifiers(unittest.TestCase):
         sun_glint = self.fy4_geo.get_sun_glint()
         sat_lat = 0
         sat_lon = 104.7
-        # scat_ang
-        geo_x = infer_great_circle(pix_lat, pix_lon, sat_lat, sat_lon)
-        rel_azi = infer_relative_azimuth(geo_x, sun_zen)
-        scat_ang = infer_scat_angle(sun_zen, sat_zen, rel_azi)
+        # scatter angle
+        scat_ang = infer_scat_angle_short(pix_lat, pix_lon, sat_lat, sat_lon, sun_zen, sat_zen)
         # air mass
         air_mass = infer_airmass(sat_zen, sun_zen)
         # dem

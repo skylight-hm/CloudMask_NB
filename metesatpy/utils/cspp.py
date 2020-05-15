@@ -86,3 +86,11 @@ def infer_scat_angle(sol_zen, sen_zen, rel_az):
     scattering_angle = np.clip(scattering_angle, -1, 1)
     scattering_angle = np.arccos(scattering_angle) / dtor
     return scattering_angle
+
+
+def infer_scat_angle_short(pix_lat, pix_lon, sat_lat, sat_lon, sun_zen, sat_zen):
+    # scat_ang
+    geo_x = infer_great_circle(pix_lat, pix_lon, sat_lat, sat_lon)
+    rel_azi = infer_relative_azimuth(geo_x, sun_zen)
+    scat_ang = infer_scat_angle(sun_zen, sat_zen, rel_azi)
+    return scat_ang

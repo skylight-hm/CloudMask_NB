@@ -2,20 +2,20 @@ import os
 
 import numpy as np
 import xarray as xr
-import h5py
 
-from metesatpy.production import FY4AAGRIL1FDIDISK4KM, FY4AAGRIL1GEODISK4KM
-from metesatpy.production.FY4A import FY4NavFile
 from metesatpy.utils.conv import cal_nxn_indices
+
+lut_root_dir = os.path.join(os.getenv('METEPY_DATA_PATH', 'data'), 'LUT')
 
 
 class Ref063Min3x3Day(object):
     lut_ds: xr.Dataset
     short_name: str = 'Ref063Min3x3Day'
+    lut_file_name: str = 'Ref_063_Min_3x3_Day.nc'
 
     def __init__(self, **kwargs):
         super(Ref063Min3x3Day, self).__init__()
-        lut_file_path = kwargs.get('lut_file_path', None)
+        lut_file_path = kwargs.get('lut_file_path', os.path.join(lut_root_dir, self.lut_file_name))
         self._load_lut(lut_file_path)
 
     def _load_lut(self, lut_file_path: str = None):
@@ -48,6 +48,7 @@ class Ref063Min3x3Day(object):
         valid_mask = np.logical_and(valid_mask2, valid_mask1)
         # space mask
         valid_mask = np.logical_and(valid_mask, ~space_mask)
+        valid_mask = np.logical_and(valid_mask, sft > 0)
         return valid_mask
 
     def infer(self,
@@ -79,10 +80,11 @@ class Ref063Min3x3Day(object):
 class TStd(object):
     lut_ds: xr.Dataset
     short_name: str = 'TStd'
+    lut_file_name: str = 'T_Std.nc'
 
     def __init__(self, **kwargs):
         super(TStd, self).__init__()
-        lut_file_path = kwargs.get('lut_file_path', None)
+        lut_file_path = kwargs.get('lut_file_path', os.path.join(lut_root_dir, self.lut_file_name))
         self._load_lut(lut_file_path)
 
     def _load_lut(self, lut_file_path: str = None):
@@ -118,6 +120,7 @@ class TStd(object):
 
         # space mask
         valid_mask = np.logical_and(valid_mask, ~space_mask)
+        valid_mask = np.logical_and(valid_mask, sft > 0)
         return valid_mask
 
     def infer(self,
@@ -149,10 +152,11 @@ class TStd(object):
 class Bt1185(object):
     lut_ds: xr.Dataset
     short_name: str = 'Btd_11_85'
+    lut_file_name: str = 'Btd_11_85.nc'
 
     def __init__(self, **kwargs):
         super(Bt1185, self).__init__()
-        lut_file_path = kwargs.get('lut_file_path', None)
+        lut_file_path = kwargs.get('lut_file_path', os.path.join(lut_root_dir, self.lut_file_name))
         self._load_lut(lut_file_path)
 
     def _load_lut(self, lut_file_path: str = None):
@@ -166,6 +170,7 @@ class Bt1185(object):
     def prepare_valid_mask(self,
                            bt_1080: np.ma.masked_array,
                            bt_850: np.ma.masked_array,
+                           sft: np.ndarray,
                            space_mask: np.ndarray = None):
         # obs mask
         bt_1080_mask = ~bt_1080.mask
@@ -177,6 +182,7 @@ class Bt1185(object):
         valid_mask = np.logical_and(obs_mask, ~cloud_mask)
         # space mask
         valid_mask = np.logical_and(valid_mask, ~space_mask)
+        valid_mask = np.logical_and(valid_mask, sft > 0)
         return valid_mask
 
     def infer(self,
@@ -208,10 +214,11 @@ class Bt1185(object):
 class RefRatioDay(object):
     lut_ds: xr.Dataset
     short_name: str = 'RefRatioDay'
+    lut_file_name: str = 'Ref_Ratio_Day.nc'
 
     def __init__(self, **kwargs):
         super(RefRatioDay, self).__init__()
-        lut_file_path = kwargs.get('lut_file_path', None)
+        lut_file_path = kwargs.get('lut_file_path', os.path.join(lut_root_dir, self.lut_file_name))
         self._load_lut(lut_file_path)
 
     def _load_lut(self, lut_file_path: str = None):
@@ -259,6 +266,7 @@ class RefRatioDay(object):
         valid_mask = np.logical_and(valid_mask2, valid_mask1)
         # space mask
         valid_mask = np.logical_and(valid_mask, ~space_mask)
+        valid_mask = np.logical_and(valid_mask, sft > 0)
         return valid_mask
 
     def infer(self,
@@ -290,10 +298,11 @@ class RefRatioDay(object):
 class Ref138Day(object):
     lut_ds: xr.Dataset
     short_name: str = 'Ref138Day'
+    lut_file_name: str = 'Ref_138_Day.nc'
 
     def __init__(self, **kwargs):
         super(Ref138Day, self).__init__()
-        lut_file_path = kwargs.get('lut_file_path', None)
+        lut_file_path = kwargs.get('lut_file_path', os.path.join(lut_root_dir, self.lut_file_name))
         self._load_lut(lut_file_path)
 
     def _load_lut(self, lut_file_path: str = None):
@@ -338,6 +347,7 @@ class Ref138Day(object):
         valid_mask = np.logical_and(valid_mask, valid_mask3)
         # space mask
         valid_mask = np.logical_and(valid_mask, ~space_mask)
+        valid_mask = np.logical_and(valid_mask, sft > 0)
         return valid_mask
 
     def infer(self,
@@ -369,10 +379,11 @@ class Ref138Day(object):
 class NdsiDay(object):
     lut_ds: xr.Dataset
     short_name: str = 'NdsiDay'
+    lut_file_name: str = 'Ndsi_Day.nc'
 
     def __init__(self, **kwargs):
         super(NdsiDay, self).__init__()
-        lut_file_path = kwargs.get('lut_file_path', None)
+        lut_file_path = kwargs.get('lut_file_path', os.path.join(lut_root_dir, self.lut_file_name))
         self._load_lut(lut_file_path)
 
     def _load_lut(self, lut_file_path: str = None):
@@ -386,6 +397,7 @@ class NdsiDay(object):
     def prepare_valid_mask(self,
                            ref_063: np.ma.masked_array,
                            ref_160: np.ma.masked_array,
+                           sft: np.ndarray,
                            sun_glint: np.ndarray,
                            sun_zen: np.ndarray,
                            scat_ang: np.ma.masked_array,
@@ -427,6 +439,7 @@ class NdsiDay(object):
         valid_mask = np.logical_and(valid_mask, valid_mask3)
         # space mask
         valid_mask = np.logical_and(valid_mask, ~space_mask)
+        valid_mask = np.logical_and(valid_mask, sft > 0)
         return valid_mask
 
     def infer(self,
@@ -458,10 +471,11 @@ class NdsiDay(object):
 class Ref063Day(object):
     lut_ds: xr.Dataset
     short_name: str = 'Ref063Day'
+    lut_file_name: str = 'Ref_063_Day.nc'
 
     def __init__(self, **kwargs):
         super(Ref063Day, self).__init__()
-        lut_file_path = kwargs.get('lut_file_path', None)
+        lut_file_path = kwargs.get('lut_file_path', os.path.join(lut_root_dir, self.lut_file_name))
         self._load_lut(lut_file_path)
 
     def _load_lut(self, lut_file_path: str = None):
@@ -522,6 +536,9 @@ class Ref063Day(object):
         valid_mask = np.logical_and(valid_mask, valid_mask3)
         # space mask
         valid_mask = np.logical_and(valid_mask, ~space_mask)
+        valid_mask = np.logical_and(valid_mask, obs_mask)
+        valid_mask = np.logical_and(valid_mask, sft > 0)
+
         return valid_mask
 
     def infer(self,

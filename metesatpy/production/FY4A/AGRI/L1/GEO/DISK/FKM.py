@@ -1,5 +1,7 @@
 from .DISK import FY4AAGRIL1GEODISKProduction
 
+import os
+import datetime
 import traceback
 
 import h5py
@@ -10,7 +12,20 @@ class FY4AAGRIL1GEODISK4KM(FY4AAGRIL1GEODISKProduction):
 
     def __init__(self, fname: str = None, **kwargs):
         super(FY4AAGRIL1GEODISK4KM, self).__init__()
-        self.fname = fname
+        try:
+            self.fname = fname
+            self.fdir = os.path.dirname(fname)
+            self.fbname = os.path.basename(fname)
+            sdt_str = self.fbname.split('_')[9]
+            edt_str = self.fbname.split('_')[10]
+            self.start_time_stamp = datetime.datetime.strptime(sdt_str, '%Y%m%d%H%M%S')
+            self.end_time_stamp = datetime.datetime.strptime(edt_str, '%Y%m%d%H%M%S')
+        except Exception as e:
+            print(e)
+
+    @property
+    def file_name_pattern(self):
+        return "FY4A-_AGRI--_N_DISK_1047E_L1-_GEO-_MULT_NOM_[0-9._]{29}_4000M_V0001.HDF"
 
     def get_sun_zenith(self):
         try:
