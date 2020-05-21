@@ -17,11 +17,11 @@ class TestCLMClassifiers(unittest.TestCase):
     def setUp(self) -> None:
         agri_l1_file_name = 'FY4A-_AGRI--_N_DISK_1047E_L1-_FDI-_MULT_' \
                             'NOM_20200101121500_20200101122959_4000M_V0001.HDF'
-        agri_l1_file_path = os.path.join(data_root_dir, agri_l1_file_name)
+        agri_l1_file_path = os.path.join(data_root_dir, '20200101', agri_l1_file_name)
 
         agri_geo_file_name = 'FY4A-_AGRI--_N_DISK_1047E_L1-_GEO-_MULT_' \
                              'NOM_20200101121500_20200101122959_4000M_V0001.HDF'
-        agri_geo_file_path = os.path.join(data_root_dir, agri_geo_file_name)
+        agri_geo_file_path = os.path.join(data_root_dir, '20200101', agri_geo_file_name)
 
         fy4_nav_file_name = 'fygatNAV.FengYun-4A.xxxxxxx.4km.hdf'
         fy4_nav_file_path = os.path.join(data_root_dir, fy4_nav_file_name)
@@ -50,6 +50,41 @@ class TestCLMClassifiers(unittest.TestCase):
         x = ref_063_min_day.prepare_feature(ref_065)
         valid_mask = ref_063_min_day.prepare_valid_mask(ref_065, dem, sft, sun_zen, coastal_mask, space_mask)
         ratio, prob = ref_063_min_day.infer(x, sft, valid_mask, space_mask, prob=True)
+        import tifffile as tiff
+        tiff.imwrite('t_raw.tif', prob)
+        fig, ax = plt.subplots(1, 2, figsize=(10, 10))
+        pos = ax[0].imshow(ratio, 'plasma')
+        ax[0].set_title(ref_063_min_day.short_name + ' Ratio \n')
+        fig.colorbar(pos, ax=ax[0])
+        ax[0].axis('off')
+        pos = ax[1].imshow(prob, 'plasma', vmin=0, vmax=1)
+        ax[1].set_title(ref_063_min_day.short_name + ' Prob \n')
+        fig.colorbar(pos, ax=ax[1])
+        ax[1].axis('off')
+        plt.show()
+
+    def test_Ref063Min3x3Day_5days(self):
+        lut_file_name = 'Ref_063_Min_3x3_Day_267.NC'
+        lut_file_path = os.path.join(data_root_dir, 'LUT', lut_file_name)
+        # obs mask !!!scale 100!!!
+        ref_065 = self.fy4_l1.get_band_by_channel('ref_065') * 100
+        # day mask (covnert to bool)
+        sun_zen = self.fy4_geo.get_sun_zenith()
+        # dem mask
+        dem = self.fy4_nav.get_dem()
+        sft = self.fy4_nav.prepare_surface_type_to_cspp()
+        # coastal mask
+        coastal = self.fy4_nav.get_coastal()
+        coastal_mask = coastal > 0
+        # space mask
+        space_mask = self.fy4_nav.get_space_mask(b=True)
+
+        ref_063_min_day = Ref063Min3x3Day(lut_file_path=lut_file_path)
+        x = ref_063_min_day.prepare_feature(ref_065)
+        valid_mask = ref_063_min_day.prepare_valid_mask(ref_065, dem, sft, sun_zen, coastal_mask, space_mask)
+        ratio, prob = ref_063_min_day.infer(x, sft, valid_mask, space_mask, prob=True)
+        import tifffile as tiff
+        tiff.imwrite('t_267.tif', prob)
         fig, ax = plt.subplots(1, 2, figsize=(10, 10))
         pos = ax[0].imshow(ratio, 'plasma')
         ax[0].set_title(ref_063_min_day.short_name + ' Ratio \n')
