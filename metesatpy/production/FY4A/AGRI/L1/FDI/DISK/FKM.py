@@ -129,7 +129,7 @@ class FY4AAGRIL1FDIDISK4KM(FY4AAGRIL1FDIDISKProduction):
             f.close()
             return idx_data
         except Exception as e:
-            print(e)
+            print(e, self.fname)
             traceback.print_exc()
 
     def get_band(self, name: str) -> np.ndarray:

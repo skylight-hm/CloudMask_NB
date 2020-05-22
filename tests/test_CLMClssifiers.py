@@ -3,7 +3,9 @@ import unittest
 import os
 
 from metesatpy.production.FY4A import FY4NavFile, FY4AAGRIL1FDIDISK4KM, FY4AAGRIL1GEODISK4KM
-from metesatpy.algorithms.CloudMask import Ref063Min3x3Day, TStd, RefRatioDay, Ref138Day, NdsiDay, Ref063Day, Bt1185
+from metesatpy.algorithms.CloudMask import Ref063Min3x3Day, TStd, RefRatioDay, Ref138Day, NdsiDay, Ref063Day, Bt1185, \
+    T11
+
 from metesatpy.utils.cspp import infer_airmass, infer_scat_angle_short
 
 import numpy as np
@@ -355,6 +357,31 @@ class TestCLMClassifiers(unittest.TestCase):
         area_con = ref_swath_con.resample(obj_swath_def)
         ref_065_clear_c = area_con.image_data
         plt.imshow(ref_065_clear_c)
+        plt.show()
+
+    def test_T11(self):
+        lut_file_name = 'T_11_60.nc'
+        lut_file_path = os.path.join(data_root_dir, 'LUT', lut_file_name)
+        # obs mask
+        bt_1080 = self.fy4_l1.get_band_by_channel('bt_1080')
+        # dem mask
+        sft = self.fy4_nav.prepare_surface_type_to_cspp()
+        # space mask
+        space_mask = self.fy4_nav.get_space_mask(b=True)
+
+        t11 = T11(lut_file_path=lut_file_path)
+        x = t11.prepare_feature(bt_1080)
+        valid_mask = t11.prepare_valid_mask(bt_1080, sft, space_mask)
+        ratio, prob = t11.infer(x, sft, valid_mask, space_mask, prob=True)
+        fig, ax = plt.subplots(1, 3, figsize=(10, 10))
+        ax[0].imshow(valid_mask, 'plasma')
+        ax[0].set_title(t11.short_name + ' valid mask \n')
+        pos = ax[1].imshow(ratio, 'plasma')
+        ax[1].set_title(t11.short_name + ' Ratio \n')
+        fig.colorbar(pos, ax=ax[1])
+        pos = ax[2].imshow(prob, 'plasma', vmin=0, vmax=1)
+        ax[2].set_title(t11.short_name + ' Prob \n')
+        fig.colorbar(pos, ax=ax[2])
         plt.show()
 
 

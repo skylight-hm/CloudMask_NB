@@ -8,7 +8,7 @@ import pandas as pd
 import dask as da
 
 from metesatpy.production.FY4A import FY4NavFile, FY4AAGRIL1FDIDISK4KM, FY4AAGRIL1GEODISK4KM, FY4AAGRICLM4KM
-from metesatpy.algorithms.CloudMask import TStd, RefRatioDay, Ref138Day, NdsiDay, Ref063Day, Bt1185
+from metesatpy.algorithms.CloudMask import RefRatioDay
 from metesatpy.utils.cspp import infer_airmass, infer_scat_angle_short
 
 data_root_dir = os.getenv('METEPY_DATA_PATH', 'data')
@@ -19,6 +19,7 @@ fy4_nav = FY4NavFile(fy4_nav_file_path)
 
 pix_lat = fy4_nav.get_latitude()
 pix_lon = fy4_nav.get_longitude()
+dem = fy4_nav.get_dem()
 sft = fy4_nav.prepare_surface_type_to_cspp()
 space_mask = fy4_nav.get_space_mask(b=True)
 
@@ -29,14 +30,14 @@ workspace = r"D:\WorkSpace\20200429\project\data"
 
 df = pd.read_csv('train.csv')
 
-bt1185 = Bt1185()
-bt1185_lut_ds_x = copy.deepcopy(bt1185.lut_ds)
+refratio = RefRatioDay()
+refratio_lut_ds_x = copy.deepcopy(refratio.lut_ds)
 
-for idx, csft in enumerate(bt1185_lut_ds_x.cspp_sft.data.tolist()):
+for idx, csft in enumerate(refratio_lut_ds_x.cspp_sft.data.tolist()):
     sft_cursor = idx + 1
     sft_mask = sft == sft_cursor
     start_idx = 40
-    for i in tqdm.trange(start_idx, len(df), desc='%s' % csft):  # ignore 01 01
+    for i in tqdm.trange(start_idx, 100, desc='%s' % csft):  # ignore 01 01
         agri_l1_file_path = df.loc[df.index[i], ('l1')]
         agri_geo_file_path = df.loc[df.index[i], ('geo')]
         agri_clm_file_path = df.loc[df.index[i], ('clm')]
@@ -44,14 +45,23 @@ for idx, csft in enumerate(bt1185_lut_ds_x.cspp_sft.data.tolist()):
         l1 = FY4AAGRIL1FDIDISK4KM(agri_l1_file_path)
         clm = FY4AAGRICLM4KM(agri_clm_file_path)
         geo = FY4AAGRIL1GEODISK4KM(agri_geo_file_path)
-
-        # obs mask
+        ref_065 = l1.get_band_by_channel('ref_065') * 100
+        ref_083 = l1.get_band_by_channel('ref_083') * 100
         bt_1080 = l1.get_band_by_channel('bt_1080')
-        bt_850 = l1.get_band_by_channel('bt_850')
+        # day mask (covnert to bool)
+        sun_zen = geo.get_sun_zenith()
+        sat_zen = geo.get_satellite_zenith()
+        sun_glint = geo.get_sun_glint()
+        sat_lat = 0
+        sat_lon = 104.7
+        # scatter angle
+        scat_ang = infer_scat_angle_short(pix_lat, pix_lon, sat_lat, sat_lon, sun_zen, sat_zen)
+        # air mass
+        air_mass = infer_airmass(sat_zen, sun_zen)
 
-        bt1185 = Bt1185()
-        x = bt1185.prepare_feature(bt_1080, bt_850)
-        valid_mask = bt1185.prepare_valid_mask(bt_1080, bt_850, sft, space_mask)
+        refratio = RefRatioDay()
+        x = refratio.prepare_feature(ref_065, ref_083)
+        valid_mask = refratio.prepare_valid_mask(ref_065, ref_083, dem, sft, sun_zen, sun_glint, space_mask, bt_1080)
 
         sft_valide_mask = np.logical_and(valid_mask, sft_mask)
 
@@ -87,11 +97,11 @@ for idx, csft in enumerate(bt1185_lut_ds_x.cspp_sft.data.tolist()):
     condition_yea = cloudy_counts / cloudy_counts.sum()
     ratio = condition_no / (condition_yea + 1e-5)
 
-    bt1185_lut_ds_x.prior_yes.data[idx] = prior_yes
-    bt1185_lut_ds_x.bin_start.data[idx] = bins1[0]
-    bt1185_lut_ds_x.bin_end.data[idx] = bins1[-1]
-    bt1185_lut_ds_x.delta_bin.data[idx] = bins1[1] - bins1[0]
-    bt1185_lut_ds_x.bins.data[idx, :] = bins1[1:]
-    bt1185_lut_ds_x.class_cond_ratio_reg.data[idx, :] = ratio
+    refratio_lut_ds_x.prior_yes.data[idx] = prior_yes
+    refratio_lut_ds_x.bin_start.data[idx] = bins1[0]
+    refratio_lut_ds_x.bin_end.data[idx] = bins1[-1]
+    refratio_lut_ds_x.delta_bin.data[idx] = bins1[1] - bins1[0]
+    refratio_lut_ds_x.bins.data[idx, :] = bins1[1:]
+    refratio_lut_ds_x.class_cond_ratio_reg.data[idx, :] = ratio
 
-bt1185_lut_ds_x.to_netcdf(r'D:\WorkSpace\20200429\project\data\LUT\Btd_11_85_959.nc')
+refratio_lut_ds_x.to_netcdf(r'D:\WorkSpace\20200429\project\data\LUT\Ref_Ratio_Day_60.nc')

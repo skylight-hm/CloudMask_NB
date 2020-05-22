@@ -567,13 +567,13 @@ class Ref063Day(object):
             return r
 
 
-class Bt1167(object):
+class T11(object):
     lut_ds: xr.Dataset
-    short_name: str = 'Btd_11_67'
-    lut_file_name: str = 'Btd_11_67.nc'
+    short_name: str = 'T_11'
+    lut_file_name: str = 'T_11.nc'
 
     def __init__(self, **kwargs):
-        super(Bt1167, self).__init__()
+        super(T11, self).__init__()
         lut_file_path = kwargs.get('lut_file_path', os.path.join(lut_root_dir, self.lut_file_name))
         self._load_lut(lut_file_path)
 
@@ -581,23 +581,213 @@ class Bt1167(object):
         if lut_file_path:
             self.lut_ds = xr.open_dataset(lut_file_path)
 
-    def prepare_feature(self, bt_1080: np.ma.masked_array, bt_850: np.ma.masked_array):
-        feature = bt_1080 - bt_850
+    def prepare_feature(self, bt_1080: np.ma.masked_array):
+        feature = bt_1080
         return feature
 
     def prepare_valid_mask(self,
                            bt_1080: np.ma.masked_array,
-                           bt_850: np.ma.masked_array,
                            sft: np.ndarray,
                            space_mask: np.ndarray = None):
         # obs mask
         bt_1080_mask = ~bt_1080.mask
-        bt_850_mask = ~bt_850.mask
-        obs_mask = np.logical_and(bt_1080_mask, bt_850_mask)
-        # cold mask
-        cloud_mask = bt_1080.data < 220
         # accumulate
-        valid_mask = np.logical_and(obs_mask, ~cloud_mask)
+        valid_mask = bt_1080_mask
+        # space mask
+        valid_mask = np.logical_and(valid_mask, ~space_mask)
+        valid_mask = np.logical_and(valid_mask, sft > 0)
+        return valid_mask
+
+    def infer(self,
+              x: np.ma.masked_array,
+              sft: np.ndarray,
+              valid_mask: np.ndarray,
+              space_mask: np.ndarray = None,
+              prob=False):
+        bin_start = self.lut_ds['bin_start'].data[sft[valid_mask] - 1]  # sft start from 1
+        delta_bin = self.lut_ds['delta_bin'].data[sft[valid_mask] - 1]  # sft start from 1
+        bin_idx = (x[valid_mask] - bin_start) / delta_bin
+        bin_idx_i = bin_idx.astype(np.int)
+        bin_idx_i = np.clip(bin_idx_i, 1, 100)
+        r_da = self.lut_ds['class_cond_ratio_reg']
+        r_v = r_da.data[sft[valid_mask] - 1, bin_idx_i - 1]  # sft, bin_idx start from 1
+        if space_mask is None:
+            space_mask = x.mask
+        r = np.ma.masked_array(np.ones(x.shape), space_mask)
+        r[valid_mask] = r_v
+        if prob:
+            prior_yes = self.lut_ds['prior_yes'].data[sft[valid_mask] - 1]  # sft start from 1
+            p = np.ma.masked_array(np.zeros(x.shape), space_mask)
+            p[valid_mask] = 1.0 / (1.0 + r[valid_mask] / prior_yes - r[valid_mask])
+            return r, p
+        else:
+            return r
+
+
+class TmaxT(object):
+    lut_ds: xr.Dataset
+    short_name: str = 'Tmax_T'
+    lut_file_name: str = 'Tmax_T.nc'
+
+    def __init__(self, **kwargs):
+        super(TmaxT, self).__init__()
+        lut_file_path = kwargs.get('lut_file_path', os.path.join(lut_root_dir, self.lut_file_name))
+        self._load_lut(lut_file_path)
+
+    def _load_lut(self, lut_file_path: str = None):
+        if lut_file_path:
+            self.lut_ds = xr.open_dataset(lut_file_path)
+
+    def prepare_feature(self, bt_1080: np.ma.masked_array):
+        bt_1080_max = cal_nxn_indices(bt_1080, func=np.max)
+        feature = bt_1080_max - bt_1080
+        return feature
+
+    def prepare_valid_mask(self,
+                           bt_1080: np.ma.masked_array,
+                           dem: np.ndarray,
+                           sft: np.ndarray,
+                           coastal_mask: np.ndarray,
+                           space_mask: np.ndarray = None):
+        # obs mask
+        bt_1080_mask = ~bt_1080.mask
+        # mount
+        mount_mask = np.logical_and(dem > 2000, sft != 6)
+        # accumulate
+        # space mask
+        valid_mask1 = np.logical_and(bt_1080_mask, ~space_mask)
+        valid_mask2 = np.logical_and(~mount_mask, ~coastal_mask)
+        valid_mask = np.logical_and(valid_mask1, valid_mask2)
+        # not mount and coastal
+        valid_mask = np.logical_and(valid_mask, sft > 0)
+        return valid_mask
+
+    def infer(self,
+              x: np.ma.masked_array,
+              sft: np.ndarray,
+              valid_mask: np.ndarray,
+              space_mask: np.ndarray = None,
+              prob=False):
+        bin_start = self.lut_ds['bin_start'].data[sft[valid_mask] - 1]  # sft start from 1
+        delta_bin = self.lut_ds['delta_bin'].data[sft[valid_mask] - 1]  # sft start from 1
+        bin_idx = (x[valid_mask] - bin_start) / delta_bin
+        bin_idx_i = bin_idx.astype(np.int)
+        bin_idx_i = np.clip(bin_idx_i, 1, 100)
+        r_da = self.lut_ds['class_cond_ratio_reg']
+        r_v = r_da.data[sft[valid_mask] - 1, bin_idx_i - 1]  # sft, bin_idx start from 1
+        if space_mask is None:
+            space_mask = x.mask
+        r = np.ma.masked_array(np.ones(x.shape), space_mask)
+        r[valid_mask] = r_v
+        if prob:
+            prior_yes = self.lut_ds['prior_yes'].data[sft[valid_mask] - 1]  # sft start from 1
+            p = np.ma.masked_array(np.zeros(x.shape), space_mask)
+            p[valid_mask] = 1.0 / (1.0 + r[valid_mask] / prior_yes - r[valid_mask])
+            return r, p
+        else:
+            return r
+
+
+class Btd37511Night(object):
+    lut_ds: xr.Dataset
+    short_name: str = 'Btd_375_11_Night'
+    lut_file_name: str = 'Btd_375_11_Night.nc'
+
+    def __init__(self, **kwargs):
+        super(Btd37511Night, self).__init__()
+        lut_file_path = kwargs.get('lut_file_path', os.path.join(lut_root_dir, self.lut_file_name))
+        self._load_lut(lut_file_path)
+
+    def _load_lut(self, lut_file_path: str = None):
+        if lut_file_path:
+            self.lut_ds = xr.open_dataset(lut_file_path)
+
+    def prepare_feature(self, bt_375: np.ma.masked_array, bt_1080: np.ma.masked_array):
+        feature = bt_375 - bt_1080
+        return feature
+
+    def prepare_valid_mask(self,
+                           bt_375: np.ma.masked_array,
+                           bt_1080: np.ma.masked_array,
+                           sft: np.ndarray,
+                           sun_zen: np.ndarray,
+                           space_mask: np.ndarray = None):
+        # obs mask
+        bt_1080_mask = ~bt_1080.mask
+        warm_mask = bt_375 >= 240
+        # solar contaminate
+        sun_con_mask = sun_zen > 90
+        # accumulate
+        # space mask
+        valid_mask1 = np.logical_and(bt_1080_mask, warm_mask)
+        valid_mask = np.logical_and(valid_mask1, sun_con_mask)
+        # not mount and coastal
+        valid_mask = np.logical_and(valid_mask, sft > 0)
+        return valid_mask
+
+    def infer(self,
+              x: np.ma.masked_array,
+              sft: np.ndarray,
+              valid_mask: np.ndarray,
+              space_mask: np.ndarray = None,
+              prob=False):
+        bin_start = self.lut_ds['bin_start'].data[sft[valid_mask] - 1]  # sft start from 1
+        delta_bin = self.lut_ds['delta_bin'].data[sft[valid_mask] - 1]  # sft start from 1
+        bin_idx = (x[valid_mask] - bin_start) / delta_bin
+        bin_idx_i = bin_idx.astype(np.int)
+        bin_idx_i = np.clip(bin_idx_i, 1, 100)
+        r_da = self.lut_ds['class_cond_ratio_reg']
+        r_v = r_da.data[sft[valid_mask] - 1, bin_idx_i - 1]  # sft, bin_idx start from 1
+        if space_mask is None:
+            space_mask = x.mask
+        r = np.ma.masked_array(np.ones(x.shape), space_mask)
+        r[valid_mask] = r_v
+        if prob:
+            prior_yes = self.lut_ds['prior_yes'].data[sft[valid_mask] - 1]  # sft start from 1
+            p = np.ma.masked_array(np.zeros(x.shape), space_mask)
+            p[valid_mask] = 1.0 / (1.0 + r[valid_mask] / prior_yes - r[valid_mask])
+            return r, p
+        else:
+            return r
+
+
+class RefStd(object):
+    lut_ds: xr.Dataset
+    short_name: str = 'RefStdDay'
+    lut_file_name: str = 'Ref_Std.nc'
+
+    def __init__(self, **kwargs):
+        super(RefStd, self).__init__()
+        lut_file_path = kwargs.get('lut_file_path', os.path.join(lut_root_dir, self.lut_file_name))
+        self._load_lut(lut_file_path)
+
+    def _load_lut(self, lut_file_path: str = None):
+        if lut_file_path:
+            self.lut_ds = xr.open_dataset(lut_file_path)
+
+    def prepare_feature(self, ref_063: np.ma.masked_array):
+        feature = cal_nxn_indices(ref_063, func=np.std)
+        return feature
+
+    def prepare_valid_mask(self,
+                           obs: np.ma.masked_array,
+                           dem: np.ndarray,
+                           sft: np.ndarray,
+                           sun_zen: np.ndarray,
+                           coastal_mask: np.ndarray,
+                           space_mask: np.ndarray = None):
+        # obs_mask
+        obs_mask = ~obs.mask
+        # day mask
+        day_mask = sun_zen <= 85.0
+        day_mask = day_mask.data
+        mount_mask = np.logical_and(dem > 2000, sft != 6)
+        # day with obs
+        valid_mask1 = np.logical_and(obs_mask, day_mask)
+        # not mount and coastal
+        valid_mask2 = np.logical_and(~mount_mask, ~coastal_mask)
+        # accumulate
+        valid_mask = np.logical_and(valid_mask2, valid_mask1)
         # space mask
         valid_mask = np.logical_and(valid_mask, ~space_mask)
         valid_mask = np.logical_and(valid_mask, sft > 0)
