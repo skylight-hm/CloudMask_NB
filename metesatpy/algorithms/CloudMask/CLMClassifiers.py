@@ -1,6 +1,7 @@
 import os
 
 import numpy as np
+import matplotlib.pyplot as plt
 import xarray as xr
 
 from metesatpy.utils.conv import cal_nxn_indices
@@ -8,7 +9,53 @@ from metesatpy.utils.conv import cal_nxn_indices
 lut_root_dir = os.path.join(os.getenv('METEPY_DATA_PATH', 'data'), 'LUT')
 
 
-class Ref063Min3x3Day(object):
+class NBClassifier(object):
+    lut_ds: xr.Dataset
+    short_name: str
+    lut_file_name: str
+
+    def __init__(self, **kwargs):
+        super(NBClassifier, self).__init__()
+        lut_file_path = kwargs.get('lut_file_path', os.path.join(lut_root_dir, self.lut_file_name))
+        self._load_lut(lut_file_path)
+
+    def _load_lut(self, lut_file_path: str = None):
+        if lut_file_path:
+            self.lut_ds = xr.open_dataset(lut_file_path)
+
+    def prepare_feature(self, **kwargs):
+        raise NotImplementedError
+
+    def prepare_valid_mask(self, **kwargs):
+        raise NotImplementedError
+
+    def plot(self, sft_name='all'):
+        fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+        for sft_idx in range(1, 8):
+            bin_start = self.lut_ds['bin_start'].data[sft_idx - 1]  # sft start from 1
+            delta_bin = self.lut_ds['delta_bin'].data[sft_idx - 1]  # sft start from 1
+            bin_end = self.lut_ds['bin_end'].data[sft_idx - 1]
+            value = np.linspace(bin_start, bin_end, 101)
+            bin_idx = (value - bin_start) / delta_bin
+            bin_idx_i = bin_idx.astype(np.int)
+            bin_idx_i = np.clip(bin_idx_i, 1, 100)
+            r_da = self.lut_ds['class_cond_ratio_reg']
+            r_v = r_da.data[sft_idx - 1, bin_idx_i - 1]  # sft, bin_idx start from 1
+            prior_yes = self.lut_ds['prior_yes'].data[sft_idx - 1]  # sft start from 1
+            p = 1.0 / (1.0 + r_v / prior_yes - r_v)
+            ax.plot(value, p, marker='o', label=str(self.lut_ds['cspp_sft'].data[sft_idx - 1]))
+            ax.legend()
+
+        plt.title('probability curve of {}'.format(self.short_name))
+        plt.xlabel('feature value')
+        plt.ylabel('cloudy prob')
+        return fig
+
+    def infer(self, **kwargs):
+        raise NotImplementedError
+
+
+class Ref063Min3x3Day(NBClassifier):
     lut_ds: xr.Dataset
     short_name: str = 'Ref063Min3x3Day'
     lut_file_name: str = 'Ref_063_Min_3x3_Day.nc'
@@ -77,7 +124,7 @@ class Ref063Min3x3Day(object):
             return r
 
 
-class TStd(object):
+class TStd(NBClassifier):
     lut_ds: xr.Dataset
     short_name: str = 'TStd'
     lut_file_name: str = 'T_Std.nc'
@@ -149,7 +196,7 @@ class TStd(object):
             return r
 
 
-class Bt1185(object):
+class Bt1185(NBClassifier):
     lut_ds: xr.Dataset
     short_name: str = 'Btd_11_85'
     lut_file_name: str = 'Btd_11_85.nc'
@@ -211,7 +258,7 @@ class Bt1185(object):
             return r
 
 
-class RefRatioDay(object):
+class RefRatioDay(NBClassifier):
     lut_ds: xr.Dataset
     short_name: str = 'RefRatioDay'
     lut_file_name: str = 'Ref_Ratio_Day.nc'
@@ -295,7 +342,7 @@ class RefRatioDay(object):
             return r
 
 
-class Ref138Day(object):
+class Ref138Day(NBClassifier):
     lut_ds: xr.Dataset
     short_name: str = 'Ref138Day'
     lut_file_name: str = 'Ref_138_Day.nc'
@@ -376,7 +423,7 @@ class Ref138Day(object):
             return r
 
 
-class NdsiDay(object):
+class NdsiDay(NBClassifier):
     lut_ds: xr.Dataset
     short_name: str = 'NdsiDay'
     lut_file_name: str = 'Ndsi_Day.nc'
@@ -468,7 +515,7 @@ class NdsiDay(object):
             return r
 
 
-class Ref063Day(object):
+class Ref063Day(NBClassifier):
     lut_ds: xr.Dataset
     short_name: str = 'Ref063Day'
     lut_file_name: str = 'Ref_063_Day.nc'
@@ -567,7 +614,7 @@ class Ref063Day(object):
             return r
 
 
-class T11(object):
+class T11(NBClassifier):
     lut_ds: xr.Dataset
     short_name: str = 'T_11'
     lut_file_name: str = 'T_11.nc'
@@ -624,7 +671,7 @@ class T11(object):
             return r
 
 
-class TmaxT(object):
+class TmaxT(NBClassifier):
     lut_ds: xr.Dataset
     short_name: str = 'Tmax_T'
     lut_file_name: str = 'Tmax_T.nc'
@@ -688,7 +735,7 @@ class TmaxT(object):
             return r
 
 
-class Btd37511Night(object):
+class Btd37511Night(NBClassifier):
     lut_ds: xr.Dataset
     short_name: str = 'Btd_375_11_Night'
     lut_file_name: str = 'Btd_375_11_Night.nc'
@@ -751,7 +798,7 @@ class Btd37511Night(object):
             return r
 
 
-class RefStd(object):
+class RefStd(NBClassifier):
     lut_ds: xr.Dataset
     short_name: str = 'RefStdDay'
     lut_file_name: str = 'Ref_Std.nc'

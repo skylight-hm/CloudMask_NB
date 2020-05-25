@@ -102,4 +102,4 @@ for idx, csft in enumerate(ref138_lut_ds_x.cspp_sft.data.tolist()):
     ref138_lut_ds_x.bins.data[idx, :] = bins1[1:]
     ref138_lut_ds_x.class_cond_ratio_reg.data[idx, :] = ratio
 
-ref138_lut_ds_x.to_netcdf(r'D:\WorkSpace\20200429\project\data\LUT\Ndsi_Day_60.nc')
+ref138_lut_ds_x.to_netcdf(r'D:\WorkSpace\20200429\project\data\LUT\Ref_138_Day_60.nc')

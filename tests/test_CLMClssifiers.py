@@ -4,7 +4,7 @@ import os
 
 from metesatpy.production.FY4A import FY4NavFile, FY4AAGRIL1FDIDISK4KM, FY4AAGRIL1GEODISK4KM
 from metesatpy.algorithms.CloudMask import Ref063Min3x3Day, TStd, RefRatioDay, Ref138Day, NdsiDay, Ref063Day, Bt1185, \
-    T11
+    T11, Btd37511Night, RefStd, TmaxT
 
 from metesatpy.utils.cspp import infer_airmass, infer_scat_angle_short
 
@@ -18,15 +18,15 @@ class TestCLMClassifiers(unittest.TestCase):
 
     def setUp(self) -> None:
         agri_l1_file_name = 'FY4A-_AGRI--_N_DISK_1047E_L1-_FDI-_MULT_' \
-                            'NOM_20200101121500_20200101122959_4000M_V0001.HDF'
+                            'NOM_20200101040000_20200101041459_4000M_V0001.HDF'
         agri_l1_file_path = os.path.join(data_root_dir, '20200101', agri_l1_file_name)
 
         agri_geo_file_name = 'FY4A-_AGRI--_N_DISK_1047E_L1-_GEO-_MULT_' \
-                             'NOM_20200101121500_20200101122959_4000M_V0001.HDF'
+                             'NOM_20200101040000_20200101041459_4000M_V0001.HDF'
         agri_geo_file_path = os.path.join(data_root_dir, '20200101', agri_geo_file_name)
 
-        fy4_nav_file_name = 'fygatNAV.FengYun-4A.xxxxxxx.4km.hdf'
-        fy4_nav_file_path = os.path.join(data_root_dir, fy4_nav_file_name)
+        fy4_nav_file_name = 'fygatNAV.FengYun-4A.xxxxxxx.4km_M1.h5'
+        fy4_nav_file_path = os.path.join("F:/", fy4_nav_file_name)
 
         self.fy4_l1 = FY4AAGRIL1FDIDISK4KM(agri_l1_file_path)
         self.fy4_geo = FY4AAGRIL1GEODISK4KM(agri_geo_file_path)
@@ -366,9 +366,37 @@ class TestCLMClassifiers(unittest.TestCase):
         bt_1080 = self.fy4_l1.get_band_by_channel('bt_1080')
         # dem mask
         sft = self.fy4_nav.prepare_surface_type_to_cspp()
+        import tifffile as tiff
+        tiff.imwrite('sft.tif', sft)
+        # # space mask
+        # space_mask = self.fy4_nav.get_space_mask(b=True)
+        #
+        # t11 = T11(lut_file_path=lut_file_path)
+        # x = t11.prepare_feature(bt_1080)
+        # valid_mask = t11.prepare_valid_mask(bt_1080, sft, space_mask)
+        # ratio, prob = t11.infer(x, sft, valid_mask, space_mask, prob=True)
+        #
+        # fig, ax = plt.subplots(1, 3, figsize=(10, 10))
+        # ax[0].imshow(valid_mask, 'plasma')
+        # ax[0].set_title(t11.short_name + ' valid mask \n')
+        # pos = ax[1].imshow(ratio, 'plasma')
+        # ax[1].set_title(t11.short_name + ' Ratio \n')
+        # fig.colorbar(pos, ax=ax[1])
+        # pos = ax[2].imshow(prob, 'plasma', vmin=0, vmax=1)
+        # ax[2].set_title(t11.short_name + ' Prob \n')
+        # fig.colorbar(pos, ax=ax[2])
+        # plt.show()
+
+    # TODO: add btd37511
+    def test_Btd37511Night(self):
+        lut_file_name = 'T_11_60.nc'
+        lut_file_path = os.path.join(data_root_dir, 'LUT', lut_file_name)
+        # obs mask
+        bt_1080 = self.fy4_l1.get_band_by_channel('bt_1080')
+        # dem mask
+        sft = self.fy4_nav.prepare_surface_type_to_cspp()
         # space mask
         space_mask = self.fy4_nav.get_space_mask(b=True)
-
         t11 = T11(lut_file_path=lut_file_path)
         x = t11.prepare_feature(bt_1080)
         valid_mask = t11.prepare_valid_mask(bt_1080, sft, space_mask)
@@ -383,6 +411,109 @@ class TestCLMClassifiers(unittest.TestCase):
         ax[2].set_title(t11.short_name + ' Prob \n')
         fig.colorbar(pos, ax=ax[2])
         plt.show()
+
+    # TODO: add refstd
+    def test_RefStd(self):
+        lut_file_name = 'T_11_60.nc'
+        lut_file_path = os.path.join(data_root_dir, 'LUT', lut_file_name)
+        # obs mask
+        bt_1080 = self.fy4_l1.get_band_by_channel('bt_1080')
+        # dem mask
+        sft = self.fy4_nav.prepare_surface_type_to_cspp()
+        # space mask
+        space_mask = self.fy4_nav.get_space_mask(b=True)
+        t11 = T11(lut_file_path=lut_file_path)
+        x = t11.prepare_feature(bt_1080)
+        valid_mask = t11.prepare_valid_mask(bt_1080, sft, space_mask)
+        ratio, prob = t11.infer(x, sft, valid_mask, space_mask, prob=True)
+        fig, ax = plt.subplots(1, 3, figsize=(10, 10))
+        ax[0].imshow(valid_mask, 'plasma')
+        ax[0].set_title(t11.short_name + ' valid mask \n')
+        pos = ax[1].imshow(ratio, 'plasma')
+        ax[1].set_title(t11.short_name + ' Ratio \n')
+        fig.colorbar(pos, ax=ax[1])
+        pos = ax[2].imshow(prob, 'plasma', vmin=0, vmax=1)
+        ax[2].set_title(t11.short_name + ' Prob \n')
+        fig.colorbar(pos, ax=ax[2])
+        plt.show()
+
+    def test_Ref063Min3x3Day_plot(self):
+        lut_file_name = 'Ref_063_Min_3x3_Day_60.nc'
+        lut_file_path = os.path.join(data_root_dir, 'LUT', lut_file_name)
+        ref063min = Ref063Min3x3Day(lut_file_path=lut_file_path)
+        fig = ref063min.plot()
+        fig.savefig(lut_file_name.replace('nc', 'png'), dpi=300)
+
+    def test_TStd_plot(self):
+        lut_file_name = 'T_Std_60.nc'
+        lut_file_path = os.path.join(data_root_dir, 'LUT', lut_file_name)
+        tstd = TStd(lut_file_path=lut_file_path)
+        fig = tstd.plot()
+        fig.savefig(lut_file_name.replace('nc', 'png'), dpi=300)
+
+    def test_Bt1185_plot(self):
+        lut_file_name = 'Btd_11_85_60.nc'
+        lut_file_path = os.path.join(data_root_dir, 'LUT', lut_file_name)
+        bt1185 = Bt1185(lut_file_path=lut_file_path)
+        fig = bt1185.plot()
+        fig.savefig(lut_file_name.replace('nc', 'png'), dpi=300)
+
+    def test_RefRatio_plot(self):
+        lut_file_name = 'Ref_Ratio_Day_60.nc'
+        lut_file_path = os.path.join(data_root_dir, 'LUT', lut_file_name)
+        ref_ratio = RefRatioDay(lut_file_path=lut_file_path)
+        fig = ref_ratio.plot()
+        plt.show()
+        fig.savefig(lut_file_name.replace('nc', 'png'), dpi=300)
+
+    def test_Ref138_plot(self):
+        lut_file_name = 'Ref_138_Day_60.nc'
+        lut_file_path = os.path.join(data_root_dir, 'LUT', lut_file_name)
+        ref_138 = Ref138Day(lut_file_path=lut_file_path)
+        fig = ref_138.plot()
+        fig.savefig(lut_file_name.replace('nc', 'png'), dpi=300)
+
+    def test_Ndsi_plot(self):
+        lut_file_name = 'Ndsi_Day.nc'
+        lut_file_path = os.path.join(data_root_dir, 'LUT', lut_file_name)
+        ndsi = NdsiDay(lut_file_path=lut_file_path)
+        fig = ndsi.plot()
+        fig.savefig(lut_file_name.replace('nc', 'png'), dpi=300)
+
+    def test_Ref063_plot(self):
+        lut_file_name = 'Ref_063_Day.nc'
+        lut_file_path = os.path.join(data_root_dir, 'LUT', lut_file_name)
+        ref063 = Ref063Day(lut_file_path=lut_file_path)
+        fig = ref063.plot()
+        fig.savefig(lut_file_name.replace('nc', 'png'), dpi=300)
+
+    def test_T11_plot(self):
+        lut_file_name = 'T_11_60.nc'
+        lut_file_path = os.path.join(data_root_dir, 'LUT', lut_file_name)
+        t11 = T11(lut_file_path=lut_file_path)
+        fig = t11.plot()
+        fig.savefig(lut_file_name.replace('nc', 'png'), dpi=300)
+
+    def test_TmaxT_plot(self):
+        lut_file_name = 'Tmax_T_60.nc'
+        lut_file_path = os.path.join(data_root_dir, 'LUT', lut_file_name)
+        tmax_t = TmaxT(lut_file_path=lut_file_path)
+        fig = tmax_t.plot()
+        fig.savefig(lut_file_name.replace('nc', 'png'), dpi=300)
+
+    def test_Btd37511_plot(self):
+        lut_file_name = 'Btd_375_11_Night_60.nc'
+        lut_file_path = os.path.join(data_root_dir, 'LUT', lut_file_name)
+        btd37511 = Btd37511Night(lut_file_path=lut_file_path)
+        fig = btd37511.plot()
+        fig.savefig(lut_file_name.replace('nc', 'png'), dpi=300)
+
+    def test_RefStd_plot(self):
+        lut_file_name = 'Ref_Std_60.nc'
+        lut_file_path = os.path.join(data_root_dir, 'LUT', lut_file_name)
+        ref_std = RefStd(lut_file_path=lut_file_path)
+        fig = ref_std.plot()
+        fig.savefig(lut_file_name.replace('nc', 'png'), dpi=300)
 
 
 if __name__ == '__main__':

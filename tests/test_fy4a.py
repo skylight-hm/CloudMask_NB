@@ -43,7 +43,7 @@ class TestFY4AAGRI(unittest.TestCase):
 class TestFY4ANav(unittest.TestCase):
 
     def test_surface_prepare(self):
-        nav_file_name = 'fygatNAV.FengYun-4A.xxxxxxx.4km.hdf'
+        nav_file_name = 'fygatNAV.FengYun-4A.xxxxxxx.4km_M1.h5'
         nav_file_path = os.path.join(data_root_dir, nav_file_name)
         fy4_nav = FY4NavFile(nav_file_path)
         sft_nb = fy4_nav.prepare_surface_type_to_cspp()
@@ -51,7 +51,7 @@ class TestFY4ANav(unittest.TestCase):
         plt.show()
 
     def test_surface_prepare1(self):
-        nav_file_name = 'fygatNAV.FengYun-4A.xxxxxxx.4km.hdf'
+        nav_file_name = 'fygatNAV.FengYun-4A.xxxxxxx.4km_M1.h5'
         nav_file_path = os.path.join(data_root_dir, nav_file_name)
         fy4_nav = FY4NavFile(nav_file_path)
         snow_mask = fy4_nav.get_snow_mask()
