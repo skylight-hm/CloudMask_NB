@@ -14,7 +14,7 @@ from metesatpy.utils.cspp import infer_airmass, infer_scat_angle_short
 
 data_root_dir = os.getenv('METEPY_DATA_PATH', 'data')
 
-fy4_nav_file_name = 'fygatNAV.FengYun-4A.xxxxxxx.4km.hdf'
+fy4_nav_file_name = 'fygatNAV.FengYun-4A.xxxxxxx.4km_M1.h5'
 fy4_nav_file_path = os.path.join(data_root_dir, fy4_nav_file_name)
 fy4_nav = FY4NavFile(fy4_nav_file_path)
 
@@ -83,6 +83,10 @@ for idx, csft in enumerate(ref_std_lut_ds_x.cspp_sft.data.tolist()):
             clear_da_fea_total = clear_da_fea
         else:
             clear_da_fea_total = da.array.concatenate((clear_da_fea_total, clear_da_fea))
+
+    cloudy_da_fea_total.to_hdf5('%s_60.h5' % ref_std.short_name, '/%s/cloudy' % csft)
+
+    clear_da_fea_total.to_hdf5('%s_60.h5' % ref_std.short_name, '/%s/clear' % csft)
 
     v_min = min(cloudy_da_fea_total.min().compute(), clear_da_fea_total.min().compute())
     v_max = max(cloudy_da_fea_total.max().compute(), clear_da_fea_total.max().compute())

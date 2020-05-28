@@ -38,7 +38,7 @@ class FY4NavFile(object):
         }
 
     def prepare_surface_type_to_cspp(self, space_mask=False) -> np.ndarray:
-        nav_f = h5py.File(self.fy4_nav_file_path)
+        nav_f = h5py.File(self.fy4_nav_file_path, 'r')
         lat = nav_f['pixel_latitude'][...]
         lon = nav_f['pixel_longitude'][...]
         land_mask = nav_f['pixel_land_mask'][...]

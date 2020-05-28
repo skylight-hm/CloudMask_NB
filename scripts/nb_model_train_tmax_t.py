@@ -13,7 +13,7 @@ from metesatpy.utils.cspp import infer_airmass, infer_scat_angle_short
 
 data_root_dir = os.getenv('METEPY_DATA_PATH', 'data')
 
-fy4_nav_file_name = 'fygatNAV.FengYun-4A.xxxxxxx.4km.hdf'
+fy4_nav_file_name = 'fygatNAV.FengYun-4A.xxxxxxx.4km_M1.h5'
 fy4_nav_file_path = os.path.join(data_root_dir, fy4_nav_file_name)
 fy4_nav = FY4NavFile(fy4_nav_file_path)
 
@@ -49,18 +49,6 @@ for idx, csft in enumerate(tmax_t_lut_ds_x.cspp_sft.data.tolist()):
         geo = FY4AAGRIL1GEODISK4KM(agri_geo_file_path)
 
         bt_1080 = l1.get_band_by_channel('bt_1080')
-        # day mask (covnert to bool)
-        sun_zen = geo.get_sun_zenith()
-        sat_zen = geo.get_satellite_zenith()
-        sun_glint = geo.get_sun_glint()
-        sat_lat = 0
-        sat_lon = 104.7
-        # scatter angle
-        scat_ang = infer_scat_angle_short(pix_lat, pix_lon, sat_lat, sat_lon, sun_zen, sat_zen)
-        # air mass
-        air_mass = infer_airmass(sat_zen, sun_zen)
-        # sft
-        sft = fy4_nav.prepare_surface_type_to_cspp()
         # space mask
         space_mask = fy4_nav.get_space_mask(b=True)
         tmax_t = TmaxT()
@@ -88,6 +76,10 @@ for idx, csft in enumerate(tmax_t_lut_ds_x.cspp_sft.data.tolist()):
             clear_da_fea_total = clear_da_fea
         else:
             clear_da_fea_total = da.array.concatenate((clear_da_fea_total, clear_da_fea))
+
+    cloudy_da_fea_total.to_hdf5('%s_60.h5' % tmax_t.short_name, '/%s/cloudy' % csft)
+
+    clear_da_fea_total.to_hdf5('%s_60.h5' % tmax_t.short_name, '/%s/clear' % csft)
 
     v_min = min(cloudy_da_fea_total.min().compute(), clear_da_fea_total.min().compute())
     v_max = max(cloudy_da_fea_total.max().compute(), clear_da_fea_total.max().compute())

@@ -26,7 +26,7 @@ class TestCLMClassifiers(unittest.TestCase):
         agri_geo_file_path = os.path.join(data_root_dir, '20200101', agri_geo_file_name)
 
         fy4_nav_file_name = 'fygatNAV.FengYun-4A.xxxxxxx.4km_M1.h5'
-        fy4_nav_file_path = os.path.join("F:/", fy4_nav_file_name)
+        fy4_nav_file_path = os.path.join(data_root_dir, fy4_nav_file_name)
 
         self.fy4_l1 = FY4AAGRIL1FDIDISK4KM(agri_l1_file_path)
         self.fy4_geo = FY4AAGRIL1GEODISK4KM(agri_geo_file_path)
@@ -360,36 +360,7 @@ class TestCLMClassifiers(unittest.TestCase):
         plt.show()
 
     def test_T11(self):
-        lut_file_name = 'T_11_60.nc'
-        lut_file_path = os.path.join(data_root_dir, 'LUT', lut_file_name)
-        # obs mask
-        bt_1080 = self.fy4_l1.get_band_by_channel('bt_1080')
-        # dem mask
-        sft = self.fy4_nav.prepare_surface_type_to_cspp()
-        import tifffile as tiff
-        tiff.imwrite('sft.tif', sft)
-        # # space mask
-        # space_mask = self.fy4_nav.get_space_mask(b=True)
-        #
-        # t11 = T11(lut_file_path=lut_file_path)
-        # x = t11.prepare_feature(bt_1080)
-        # valid_mask = t11.prepare_valid_mask(bt_1080, sft, space_mask)
-        # ratio, prob = t11.infer(x, sft, valid_mask, space_mask, prob=True)
-        #
-        # fig, ax = plt.subplots(1, 3, figsize=(10, 10))
-        # ax[0].imshow(valid_mask, 'plasma')
-        # ax[0].set_title(t11.short_name + ' valid mask \n')
-        # pos = ax[1].imshow(ratio, 'plasma')
-        # ax[1].set_title(t11.short_name + ' Ratio \n')
-        # fig.colorbar(pos, ax=ax[1])
-        # pos = ax[2].imshow(prob, 'plasma', vmin=0, vmax=1)
-        # ax[2].set_title(t11.short_name + ' Prob \n')
-        # fig.colorbar(pos, ax=ax[2])
-        # plt.show()
-
-    # TODO: add btd37511
-    def test_Btd37511Night(self):
-        lut_file_name = 'T_11_60.nc'
+        lut_file_name = 'T_11_60_handfix.nc'
         lut_file_path = os.path.join(data_root_dir, 'LUT', lut_file_name)
         # obs mask
         bt_1080 = self.fy4_l1.get_band_by_channel('bt_1080')
@@ -397,10 +368,13 @@ class TestCLMClassifiers(unittest.TestCase):
         sft = self.fy4_nav.prepare_surface_type_to_cspp()
         # space mask
         space_mask = self.fy4_nav.get_space_mask(b=True)
+
         t11 = T11(lut_file_path=lut_file_path)
         x = t11.prepare_feature(bt_1080)
         valid_mask = t11.prepare_valid_mask(bt_1080, sft, space_mask)
         ratio, prob = t11.infer(x, sft, valid_mask, space_mask, prob=True)
+        import tifffile as tiff
+        tiff.imwrite('T11_60_sft_fix_hand_fix.tif', prob)
         fig, ax = plt.subplots(1, 3, figsize=(10, 10))
         ax[0].imshow(valid_mask, 'plasma')
         ax[0].set_title(t11.short_name + ' valid mask \n')
@@ -409,6 +383,31 @@ class TestCLMClassifiers(unittest.TestCase):
         fig.colorbar(pos, ax=ax[1])
         pos = ax[2].imshow(prob, 'plasma', vmin=0, vmax=1)
         ax[2].set_title(t11.short_name + ' Prob \n')
+        fig.colorbar(pos, ax=ax[2])
+        plt.show()
+
+    def test_Btd37511Night(self):
+        lut_file_name = 'Btd_375_11_Night_60.nc'
+        lut_file_path = os.path.join(data_root_dir, 'LUT', lut_file_name)
+        # obs mask
+        bt_372 = self.fy4_l1.get_band_by_channel('bt_372_high')
+        bt_1080 = self.fy4_l1.get_band_by_channel('bt_1080')
+        sft = self.fy4_nav.prepare_surface_type_to_cspp()
+        sun_zen = self.fy4_geo.get_sun_zenith()
+        # space mask
+        space_mask = self.fy4_nav.get_space_mask(b=True)
+        btd37511 = Btd37511Night(lut_file_path=lut_file_path)
+        x = btd37511.prepare_feature(bt_372, bt_1080)
+        valid_mask = btd37511.prepare_valid_mask(bt_372, bt_1080, sft, sun_zen, space_mask)
+        ratio, prob = btd37511.infer(x, sft, valid_mask, space_mask, prob=True)
+        fig, ax = plt.subplots(1, 3, figsize=(10, 10))
+        ax[0].imshow(valid_mask, 'plasma')
+        ax[0].set_title(btd37511.short_name + ' valid mask \n')
+        pos = ax[1].imshow(ratio, 'plasma')
+        ax[1].set_title(btd37511.short_name + ' Ratio \n')
+        fig.colorbar(pos, ax=ax[1])
+        pos = ax[2].imshow(prob, 'plasma', vmin=0, vmax=1)
+        ax[2].set_title(btd37511.short_name + ' Prob \n')
         fig.colorbar(pos, ax=ax[2])
         plt.show()
 
@@ -474,7 +473,7 @@ class TestCLMClassifiers(unittest.TestCase):
         fig.savefig(lut_file_name.replace('nc', 'png'), dpi=300)
 
     def test_Ndsi_plot(self):
-        lut_file_name = 'Ndsi_Day.nc'
+        lut_file_name = 'Ndsi_Day_60.nc'
         lut_file_path = os.path.join(data_root_dir, 'LUT', lut_file_name)
         ndsi = NdsiDay(lut_file_path=lut_file_path)
         fig = ndsi.plot()
