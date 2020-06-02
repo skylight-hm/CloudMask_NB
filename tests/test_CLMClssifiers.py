@@ -2,9 +2,9 @@ import unittest
 
 import os
 
-from metesatpy.production.FY4A import FY4NavFile, FY4AAGRIL1FDIDISK4KM, FY4AAGRIL1GEODISK4KM
+from metesatpy.production.FY4A import FY4NavFile, FY4AAGRIL1FDIDISK4KM, FY4AAGRIL1GEODISK4KM, FY4AAGRICLM4KM
 from metesatpy.algorithms.CloudMask import Ref063Min3x3Day, TStd, RefRatioDay, Ref138Day, NdsiDay, Ref063Day, Bt1185, \
-    T11, Btd37511Night, RefStd, TmaxT
+    T11, Btd37511Night, RefStd, TmaxT, Emiss375Day, Emiss375Night
 
 from metesatpy.utils.cspp import infer_airmass, infer_scat_angle_short
 
@@ -18,12 +18,16 @@ class TestCLMClassifiers(unittest.TestCase):
 
     def setUp(self) -> None:
         agri_l1_file_name = 'FY4A-_AGRI--_N_DISK_1047E_L1-_FDI-_MULT_' \
-                            'NOM_20200101040000_20200101041459_4000M_V0001.HDF'
+                            'NOM_20200101120000_20200101121459_4000M_V0001.HDF'
         agri_l1_file_path = os.path.join(data_root_dir, '20200101', agri_l1_file_name)
 
         agri_geo_file_name = 'FY4A-_AGRI--_N_DISK_1047E_L1-_GEO-_MULT_' \
-                             'NOM_20200101040000_20200101041459_4000M_V0001.HDF'
+                             'NOM_20200101120000_20200101121459_4000M_V0001.HDF'
         agri_geo_file_path = os.path.join(data_root_dir, '20200101', agri_geo_file_name)
+
+        agri_clm_file_name = 'FY4A-_AGRI--_N_DISK_1047E_L2-_CLM-_MULT_' \
+                             'NOM_20200101120000_20200101121459_4000M_V0001.NC'
+        agri_clm_file_path = os.path.join(data_root_dir, '20200101', agri_clm_file_name)
 
         fy4_nav_file_name = 'fygatNAV.FengYun-4A.xxxxxxx.4km_M1.h5'
         fy4_nav_file_path = os.path.join(data_root_dir, fy4_nav_file_name)
@@ -31,6 +35,7 @@ class TestCLMClassifiers(unittest.TestCase):
         self.fy4_l1 = FY4AAGRIL1FDIDISK4KM(agri_l1_file_path)
         self.fy4_geo = FY4AAGRIL1GEODISK4KM(agri_geo_file_path)
         self.fy4_nav = FY4NavFile(fy4_nav_file_path)
+        self.fy4_clm = FY4AAGRICLM4KM(agri_clm_file_path)
 
     def test_Ref063Min3x3Day(self):
         lut_file_name = 'Ref_063_Min_3x3_Day.nc'
@@ -387,10 +392,10 @@ class TestCLMClassifiers(unittest.TestCase):
         plt.show()
 
     def test_Btd37511Night(self):
-        lut_file_name = 'Btd_375_11_Night_60.nc'
+        lut_file_name = 'Btd_375_11_Night_60_handfix.nc'
         lut_file_path = os.path.join(data_root_dir, 'LUT', lut_file_name)
         # obs mask
-        bt_372 = self.fy4_l1.get_band_by_channel('bt_372_high')
+        bt_372 = self.fy4_l1.get_band_by_channel('bt_372_low')
         bt_1080 = self.fy4_l1.get_band_by_channel('bt_1080')
         sft = self.fy4_nav.prepare_surface_type_to_cspp()
         sun_zen = self.fy4_geo.get_sun_zenith()
@@ -411,28 +416,52 @@ class TestCLMClassifiers(unittest.TestCase):
         fig.colorbar(pos, ax=ax[2])
         plt.show()
 
-    # TODO: add refstd
-    def test_RefStd(self):
-        lut_file_name = 'T_11_60.nc'
+    def test_Emiss4_check(self):
+        import mpl_scatter_density  # noqa
+        ems_372 = self.fy4_l1.get_band_by_channel('ems_372')
+        # dem mask
+        # sft = self.fy4_nav.prepare_surface_type_to_cspp()
+        sun_zen = self.fy4_geo.get_sun_zenith()
+        clm = self.fy4_clm.get_clm()
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1, projection='scatter_density')
+        value_idx = ems_372 < 20
+        xs = ems_372[value_idx]
+        ys = sun_zen[value_idx]
+        clr_idx = clm[value_idx] == 3
+        clm_idx = clm[value_idx] == 0
+        mid_idx = np.logical_and(0 < clm[value_idx], clm[value_idx] < 3)
+        ax.scatter_density(xs[clm_idx], ys[clm_idx], color='red', label='Cloudy')
+        ax.scatter_density(xs[mid_idx], ys[mid_idx], color='yellow', label='Uncertain')
+        ax.scatter_density(xs[clr_idx], ys[clr_idx], color='blue', label='Clear')
+        ax.set_xlabel('Pseudo 4um Emissivity')
+        ax.set_ylabel('Solar Zenith')
+        plt.title('{} scatter density plot '.format(str(self.fy4_l1.start_time_stamp)))
+        plt.show()
+
+    def test_Emiss4(self):
+        lut_file_name = 'Emiss_375_Day_60_handifx.nc'
         lut_file_path = os.path.join(data_root_dir, 'LUT', lut_file_name)
         # obs mask
+        ems_372 = self.fy4_l1.get_band_by_channel('ems_372')
         bt_1080 = self.fy4_l1.get_band_by_channel('bt_1080')
-        # dem mask
+        sun_zen = self.fy4_geo.get_sun_zenith()
         sft = self.fy4_nav.prepare_surface_type_to_cspp()
+        # sun_glint = self.fy4_geo.get_sun_glint()
         # space mask
         space_mask = self.fy4_nav.get_space_mask(b=True)
-        t11 = T11(lut_file_path=lut_file_path)
-        x = t11.prepare_feature(bt_1080)
-        valid_mask = t11.prepare_valid_mask(bt_1080, sft, space_mask)
-        ratio, prob = t11.infer(x, sft, valid_mask, space_mask, prob=True)
+        emiss4 = Emiss375Day(lut_file_path=lut_file_path)
+        x = emiss4.prepare_feature(ems_372)
+        valid_mask = emiss4.prepare_valid_mask(ems_372, sft, sun_zen, space_mask, bt_1080)
+        ratio, prob = emiss4.infer(x, sft, valid_mask, space_mask, prob=True)
         fig, ax = plt.subplots(1, 3, figsize=(10, 10))
         ax[0].imshow(valid_mask, 'plasma')
-        ax[0].set_title(t11.short_name + ' valid mask \n')
+        ax[0].set_title(emiss4.short_name + ' valid mask \n')
         pos = ax[1].imshow(ratio, 'plasma')
-        ax[1].set_title(t11.short_name + ' Ratio \n')
+        ax[1].set_title(emiss4.short_name + ' Ratio \n')
         fig.colorbar(pos, ax=ax[1])
         pos = ax[2].imshow(prob, 'plasma', vmin=0, vmax=1)
-        ax[2].set_title(t11.short_name + ' Prob \n')
+        ax[2].set_title(emiss4.short_name + ' Prob \n')
         fig.colorbar(pos, ax=ax[2])
         plt.show()
 

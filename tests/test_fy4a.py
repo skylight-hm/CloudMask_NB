@@ -4,7 +4,7 @@ import os
 
 import matplotlib.pyplot as plt
 
-from metesatpy.production.FY4A import FY4NavFile, FY4AAGRIL1FDIDISK4KM, FY4AAGRICLM4KM
+from metesatpy.production.FY4A import FY4NavFile, FY4AAGRIL1FDIDISK4KM, FY4AAGRICLM4KM, FY4AAGRIL1GEODISK4KM
 
 data_root_dir = os.getenv('METEPY_DATA_PATH', 'data')
 
@@ -13,13 +13,20 @@ class TestFY4AAGRI(unittest.TestCase):
 
     def setUp(self) -> None:
         agri_l1_file_name = 'FY4A-_AGRI--_N_DISK_1047E_L1-_FDI-_MULT_' \
-                            'NOM_20200101121500_20200101122959_4000M_V0001.HDF'
-        self.agri_l1_file_path = os.path.join(data_root_dir,'20200101', agri_l1_file_name)
+                            'NOM_20200101120000_20200101121459_4000M_V0001.HDF'
+        self.agri_l1_file_path = os.path.join(data_root_dir, '20200101', agri_l1_file_name)
 
     def test_get_band_by_channel(self) -> None:
         l1 = FY4AAGRIL1FDIDISK4KM(self.agri_l1_file_path)
         array = l1.get_band_by_channel('ref_065')
         plt.imshow(array)
+        plt.show()
+
+    def test_get_fake_band_by_channel(self) -> None:
+        l1 = FY4AAGRIL1FDIDISK4KM(self.agri_l1_file_path)
+        array = l1.get_band_by_channel('ems_372')
+        # plt.imshow(array < 1) # night this value is less than 1
+        plt.imshow(array, vmin=0, vmax=10)
         plt.show()
 
     def test_print_available_channels(self) -> None:
@@ -40,9 +47,23 @@ class TestFY4AAGRI(unittest.TestCase):
         pass
 
 
+class TestFY4AGEO(unittest.TestCase):
+
+    def setUp(self) -> None:
+        agri_geo_file_name = 'FY4A-_AGRI--_N_DISK_1047E_L1-_GEO-_MULT_' \
+                             'NOM_20200101120000_20200101121459_4000M_V0001.HDF'
+        self.agri_geo_file_path = os.path.join(data_root_dir, '20200101', agri_geo_file_name)
+
+    def test_plot_sun_glint(self) -> None:
+        fy4_geo = FY4AAGRIL1GEODISK4KM(self.agri_geo_file_path)
+        sun_glint = fy4_geo.get_sun_glint()
+        plt.imshow(sun_glint)
+        plt.show()
+
+
 class TestFY4ANav(unittest.TestCase):
 
-    def test_surface_prepare(self):
+    def test_surface(self):
         nav_file_name = 'fygatNAV.FengYun-4A.xxxxxxx.4km_M1.h5'
         nav_file_path = os.path.join(data_root_dir, nav_file_name)
         fy4_nav = FY4NavFile(nav_file_path)
@@ -50,7 +71,7 @@ class TestFY4ANav(unittest.TestCase):
         plt.imshow(sft_nb)
         plt.show()
 
-    def test_surface_prepare1(self):
+    def test_snow_mask(self):
         nav_file_name = 'fygatNAV.FengYun-4A.xxxxxxx.4km_M1.h5'
         nav_file_path = os.path.join(data_root_dir, nav_file_name)
         fy4_nav = FY4NavFile(nav_file_path)

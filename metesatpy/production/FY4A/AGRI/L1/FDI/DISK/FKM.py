@@ -19,6 +19,13 @@ class FY4AAGRIL1FDIDISKChannel(object):
     cal_ds_name: str
 
 
+class FY4AAGRIL1FDIDISKFakeChannel(FY4AAGRIL1FDIDISKChannel):
+    data_ds_name: dict
+
+    def __init__(self, *args, **kwargs):
+        super(FY4AAGRIL1FDIDISKFakeChannel, self).__init__(*args, **kwargs)
+
+
 class FY4AAGRIL1FDIDISK4KM(FY4AAGRIL1FDIDISKProduction):
     channel_table: dict = {
         'ref_047': FY4AAGRIL1FDIDISKChannel(short_name='ref_047',
@@ -45,14 +52,19 @@ class FY4AAGRIL1FDIDISK4KM(FY4AAGRIL1FDIDISKProduction):
                                             center_wave_length='2.22um',
                                             data_ds_name='NOMChannel06',
                                             cal_ds_name='CALChannel06'),
-        'bt_372_low': FY4AAGRIL1FDIDISKChannel(short_name='bt_372_low',
-                                               center_wave_length='3.72um',
-                                               data_ds_name='NOMChannel07',
-                                               cal_ds_name='CALChannel07'),
         'bt_372_high': FY4AAGRIL1FDIDISKChannel(short_name='bt_372_high',
                                                 center_wave_length='3.72um',
-                                                data_ds_name='NOMChannel08',
-                                                cal_ds_name='CALChannel08'),
+                                                data_ds_name='NOMChannel07',
+                                                cal_ds_name='CALChannel07'),  # for fire
+        'bt_372_low': FY4AAGRIL1FDIDISKChannel(short_name='bt_372_low',
+                                               center_wave_length='3.72um',
+                                               data_ds_name='NOMChannel08',
+                                               cal_ds_name='CALChannel08'),
+        'ems_372': FY4AAGRIL1FDIDISKFakeChannel(short_name='ems_372',
+                                                center_wave_length='3.72um',
+                                                data_ds_name={'data_372': 'NOMChannel08',
+                                                              'data_1080': 'NOMChannel12'},
+                                                cal_ds_name=None),
         'bt_625': FY4AAGRIL1FDIDISKChannel(short_name='bt_625',
                                            center_wave_length='6.25um',
                                            data_ds_name='NOMChannel09',
@@ -116,18 +128,28 @@ class FY4AAGRIL1FDIDISK4KM(FY4AAGRIL1FDIDISKProduction):
         pass
 
     def get_band_by_channel(self, name: str, **kwargs) -> np.ma.masked_array:
+        band_array = None
         try:
             f = h5py.File(self.fname, 'r')
             channel_cursor = self.channel_table[name]
-            # idx data set name
-            idx_ds_name = channel_cursor.data_ds_name
-            idx_data = self._decorate_ds_data(f[idx_ds_name])
-            # cal data set name
-            cal_ds_name = channel_cursor.cal_ds_name
-            cal_data = self._decorate_ds_data(f[cal_ds_name])
-            idx_data[~idx_data.mask] = cal_data[idx_data[~idx_data.mask].astype(np.int)]
-            f.close()
-            return idx_data
+            if isinstance(channel_cursor, FY4AAGRIL1FDIDISKFakeChannel):
+                if channel_cursor.short_name == 'ems_372':
+                    data_372 = self.get_band_by_channel('bt_372_low')
+                    data_1080 = self.get_band_by_channel('bt_1080')
+                    c2 = 14388
+                    ems_372 = (np.exp(c2 / (3.9 * data_1080)) - 1) / (np.exp(c2 / (3.9 * data_372)) - 1)
+                    band_array = ems_372
+            else:
+                # idx data set name
+                idx_ds_name = channel_cursor.data_ds_name
+                idx_data = self._decorate_ds_data(f[idx_ds_name])
+                # cal data set name
+                cal_ds_name = channel_cursor.cal_ds_name
+                cal_data = self._decorate_ds_data(f[cal_ds_name])
+                idx_data[~idx_data.mask] = cal_data[idx_data[~idx_data.mask].astype(np.int)]
+                f.close()
+                band_array = idx_data
+            return band_array
         except Exception as e:
             print(e, self.fname)
             traceback.print_exc()
@@ -151,7 +173,7 @@ class FY4AAGRIL1FDIDISK4KM(FY4AAGRIL1FDIDISKProduction):
             ax.set_title(title)
             fig.colorbar(pos, ax=ax)
         elif plot_type == 'ir':
-            dn = self.get_band_by_channel('bt_625')
+            dn = self.get_band_by_channel('bt_1080')
             img = dn
             title = kwargs.get('title', 'bt dn\n' + os.path.basename(self.fname))
             fig, ax = plt.subplots(1, 1)

@@ -53,7 +53,7 @@ class FY4AAGRICLM4KM(FY4AAGRICLM):
             cmc = CouldMaskPure()
             params = cmc.param_dict
         main_axes.imshow(array, **params)
-        main_axes.set_axis_off()
+        # main_axes.set_axis_off()
         main_axes.set_title(title, fontsize=16)
         axs.append(main_axes)
         if color_bar_axes:
