@@ -4,7 +4,7 @@ import os
 
 from metesatpy.production.FY4A import FY4NavFile, FY4AAGRIL1FDIDISK4KM, FY4AAGRIL1GEODISK4KM, FY4AAGRICLM4KM
 from metesatpy.algorithms.CloudMask import Ref063Min3x3Day, TStd, RefRatioDay, Ref138Day, NdsiDay, Ref063Day, Bt1185, \
-    T11, Btd37511Night, RefStd, TmaxT, Emiss375Day, Emiss375Night
+    T11, Btd37511Night, RefStd, TmaxT, Emiss375Day, Emiss375Night, GeoColorRGB
 
 from metesatpy.utils.cspp import infer_airmass, infer_scat_angle_short
 
@@ -18,15 +18,15 @@ class TestCLMClassifiers(unittest.TestCase):
 
     def setUp(self) -> None:
         agri_l1_file_name = 'FY4A-_AGRI--_N_DISK_1047E_L1-_FDI-_MULT_' \
-                            'NOM_20200101120000_20200101121459_4000M_V0001.HDF'
+                            'NOM_20200101100000_20200101101459_4000M_V0001.HDF'
         agri_l1_file_path = os.path.join(data_root_dir, '20200101', agri_l1_file_name)
 
         agri_geo_file_name = 'FY4A-_AGRI--_N_DISK_1047E_L1-_GEO-_MULT_' \
-                             'NOM_20200101120000_20200101121459_4000M_V0001.HDF'
+                             'NOM_20200101100000_20200101101459_4000M_V0001.HDF'
         agri_geo_file_path = os.path.join(data_root_dir, '20200101', agri_geo_file_name)
 
         agri_clm_file_name = 'FY4A-_AGRI--_N_DISK_1047E_L2-_CLM-_MULT_' \
-                             'NOM_20200101120000_20200101121459_4000M_V0001.NC'
+                             'NOM_20200101100000_20200101101459_4000M_V0001.NC'
         agri_clm_file_path = os.path.join(data_root_dir, '20200101', agri_clm_file_name)
 
         fy4_nav_file_name = 'fygatNAV.FengYun-4A.xxxxxxx.4km_M1.h5'
@@ -57,8 +57,6 @@ class TestCLMClassifiers(unittest.TestCase):
         x = ref_063_min_day.prepare_feature(ref_065)
         valid_mask = ref_063_min_day.prepare_valid_mask(ref_065, dem, sft, sun_zen, coastal_mask, space_mask)
         ratio, prob = ref_063_min_day.infer(x, sft, valid_mask, space_mask, prob=True)
-        import tifffile as tiff
-        tiff.imwrite('t_raw.tif', prob)
         fig, ax = plt.subplots(1, 2, figsize=(10, 10))
         pos = ax[0].imshow(ratio, 'plasma')
         ax[0].set_title(ref_063_min_day.short_name + ' Ratio \n')
@@ -90,8 +88,6 @@ class TestCLMClassifiers(unittest.TestCase):
         x = ref_063_min_day.prepare_feature(ref_065)
         valid_mask = ref_063_min_day.prepare_valid_mask(ref_065, dem, sft, sun_zen, coastal_mask, space_mask)
         ratio, prob = ref_063_min_day.infer(x, sft, valid_mask, space_mask, prob=True)
-        import tifffile as tiff
-        tiff.imwrite('t_267.tif', prob)
         fig, ax = plt.subplots(1, 2, figsize=(10, 10))
         pos = ax[0].imshow(ratio, 'plasma')
         ax[0].set_title(ref_063_min_day.short_name + ' Ratio \n')
@@ -104,7 +100,7 @@ class TestCLMClassifiers(unittest.TestCase):
         plt.show()
 
     def test_TStd(self):
-        lut_file_name = 'T_Std.nc'
+        lut_file_name = 'T_Std_60_handfix.nc'
         lut_file_path = os.path.join(data_root_dir, 'LUT', lut_file_name)
         # obs mask
         bt_1080 = self.fy4_l1.get_band_by_channel('bt_1080')
@@ -133,7 +129,7 @@ class TestCLMClassifiers(unittest.TestCase):
         plt.show()
 
     def test_Bt1185(self):
-        lut_file_name = 'Btd_11_85.nc'
+        lut_file_name = 'Btd_11_85_60_handfix.nc'
         lut_file_path = os.path.join(data_root_dir, 'LUT', lut_file_name)
         # obs mask
         bt_1080 = self.fy4_l1.get_band_by_channel('bt_1080')
@@ -145,7 +141,7 @@ class TestCLMClassifiers(unittest.TestCase):
 
         bt1185 = Bt1185(lut_file_path=lut_file_path)
         x = bt1185.prepare_feature(bt_1080, bt_850)
-        valid_mask = bt1185.prepare_valid_mask(bt_1080, bt_850, space_mask)
+        valid_mask = bt1185.prepare_valid_mask(bt_1080, bt_850, sft, space_mask)
         ratio, prob = bt1185.infer(x, sft, valid_mask, space_mask, prob=True)
         fig, ax = plt.subplots(1, 3, figsize=(10, 10))
         ax[0].imshow(valid_mask, 'plasma')
@@ -378,8 +374,6 @@ class TestCLMClassifiers(unittest.TestCase):
         x = t11.prepare_feature(bt_1080)
         valid_mask = t11.prepare_valid_mask(bt_1080, sft, space_mask)
         ratio, prob = t11.infer(x, sft, valid_mask, space_mask, prob=True)
-        import tifffile as tiff
-        tiff.imwrite('T11_60_sft_fix_hand_fix.tif', prob)
         fig, ax = plt.subplots(1, 3, figsize=(10, 10))
         ax[0].imshow(valid_mask, 'plasma')
         ax[0].set_title(t11.short_name + ' valid mask \n')
@@ -391,8 +385,36 @@ class TestCLMClassifiers(unittest.TestCase):
         fig.colorbar(pos, ax=ax[2])
         plt.show()
 
+    def test_Tmax_T(self):
+        lut_file_name = 'Tmax_T_60_handfix.nc'
+        lut_file_path = os.path.join(data_root_dir, 'LUT', lut_file_name)
+        # obs mask
+        bt_1080 = self.fy4_l1.get_band_by_channel('bt_1080')
+        # dem
+        dem = self.fy4_nav.get_dem()
+        sft = self.fy4_nav.prepare_surface_type_to_cspp()
+        # coastal mask
+        coastal = self.fy4_nav.get_coastal()
+        coastal_mask = coastal > 0
+        # space mask
+        space_mask = self.fy4_nav.get_space_mask(b=True)
+        tmax_t = TmaxT(lut_file_path=lut_file_path)
+        x = tmax_t.prepare_feature(bt_1080)
+        valid_mask = tmax_t.prepare_valid_mask(bt_1080, dem, sft, coastal_mask, space_mask)
+        ratio, prob = tmax_t.infer(x, sft, valid_mask, space_mask, prob=True)
+        fig, ax = plt.subplots(1, 3, figsize=(10, 10))
+        ax[0].imshow(valid_mask, 'plasma')
+        ax[0].set_title(tmax_t.short_name + ' valid mask \n')
+        pos = ax[1].imshow(ratio, 'plasma')
+        ax[1].set_title(tmax_t.short_name + ' Ratio \n')
+        fig.colorbar(pos, ax=ax[1])
+        pos = ax[2].imshow(prob, 'plasma', vmin=0, vmax=1)
+        ax[2].set_title(tmax_t.short_name + ' Prob \n')
+        fig.colorbar(pos, ax=ax[2])
+        plt.show()
+
     def test_Btd37511Night(self):
-        lut_file_name = 'Btd_375_11_Night_60_handfix.nc'
+        lut_file_name = 'Btd_375_11_Night_60.nc'
         lut_file_path = os.path.join(data_root_dir, 'LUT', lut_file_name)
         # obs mask
         bt_372 = self.fy4_l1.get_band_by_channel('bt_372_low')
@@ -439,7 +461,7 @@ class TestCLMClassifiers(unittest.TestCase):
         plt.title('{} scatter density plot '.format(str(self.fy4_l1.start_time_stamp)))
         plt.show()
 
-    def test_Emiss4(self):
+    def test_Emiss4Day(self):
         lut_file_name = 'Emiss_375_Day_60_handifx.nc'
         lut_file_path = os.path.join(data_root_dir, 'LUT', lut_file_name)
         # obs mask
@@ -452,7 +474,7 @@ class TestCLMClassifiers(unittest.TestCase):
         space_mask = self.fy4_nav.get_space_mask(b=True)
         emiss4 = Emiss375Day(lut_file_path=lut_file_path)
         x = emiss4.prepare_feature(ems_372)
-        valid_mask = emiss4.prepare_valid_mask(ems_372, sft, sun_zen, space_mask, bt_1080)
+        valid_mask = emiss4.prepare_valid_mask(ems_372, sft, sun_zen, space_mask)
         ratio, prob = emiss4.infer(x, sft, valid_mask, space_mask, prob=True)
         fig, ax = plt.subplots(1, 3, figsize=(10, 10))
         ax[0].imshow(valid_mask, 'plasma')
@@ -462,6 +484,54 @@ class TestCLMClassifiers(unittest.TestCase):
         fig.colorbar(pos, ax=ax[1])
         pos = ax[2].imshow(prob, 'plasma', vmin=0, vmax=1)
         ax[2].set_title(emiss4.short_name + ' Prob \n')
+        fig.colorbar(pos, ax=ax[2])
+        plt.show()
+
+    def test_Emiss4Night(self):
+        lut_file_name = 'Emiss_375_Night_60_handifx.nc'
+        lut_file_path = os.path.join(data_root_dir, 'LUT', lut_file_name)
+        # obs mask
+        ems_372 = self.fy4_l1.get_band_by_channel('ems_372')
+        bt_1080 = self.fy4_l1.get_band_by_channel('bt_1080')
+        sun_zen = self.fy4_geo.get_sun_zenith()
+        sft = self.fy4_nav.prepare_surface_type_to_cspp()
+        # sun_glint = self.fy4_geo.get_sun_glint()
+        # space mask
+        space_mask = self.fy4_nav.get_space_mask(b=True)
+        emiss4 = Emiss375Night(lut_file_path=lut_file_path)
+        x = emiss4.prepare_feature(ems_372)
+        valid_mask = emiss4.prepare_valid_mask(ems_372, sft, sun_zen, space_mask)
+        ratio, prob = emiss4.infer(x, sft, valid_mask, space_mask, prob=True)
+        fig, ax = plt.subplots(1, 3, figsize=(10, 10))
+        ax[0].imshow(valid_mask, 'plasma')
+        ax[0].set_title(emiss4.short_name + ' valid mask \n')
+        pos = ax[1].imshow(ratio, 'plasma')
+        ax[1].set_title(emiss4.short_name + ' Ratio \n')
+        fig.colorbar(pos, ax=ax[1])
+        pos = ax[2].imshow(prob, 'plasma', vmin=0, vmax=1)
+        ax[2].set_title(emiss4.short_name + ' Prob \n')
+        fig.colorbar(pos, ax=ax[2])
+        plt.show()
+
+    def test_GeoColorRGB(self):
+        lut_file_name = 'GeoColorRGB_60_handifx.nc'
+        lut_file_path = os.path.join(data_root_dir, 'LUT', lut_file_name)
+        sft = self.fy4_nav.prepare_surface_type_to_cspp()
+        # space mask
+        space_mask = self.fy4_nav.get_space_mask(b=True)
+        geo_color = GeoColorRGB(lut_file_path=lut_file_path)
+        geo_color_tif_path = self.fy4_l1.fname.replace('FDI', 'CLR').replace('V0001.HDF', 'GeoColor.tif')
+        x = geo_color.prepare_feature(geo_color_tif_path)
+        valid_mask = geo_color.prepare_valid_mask(x, sft, space_mask)
+        ratio, prob = geo_color.infer(x, sft, valid_mask, space_mask, prob=True)
+        fig, ax = plt.subplots(1, 3, figsize=(10, 10))
+        ax[0].imshow(valid_mask, 'plasma')
+        ax[0].set_title(geo_color.short_name + ' valid mask \n')
+        pos = ax[1].imshow(ratio, 'plasma')
+        ax[1].set_title(geo_color.short_name + ' Ratio \n')
+        fig.colorbar(pos, ax=ax[1])
+        pos = ax[2].imshow(prob, 'plasma', vmin=0, vmax=1)
+        ax[2].set_title(geo_color.short_name + ' Prob \n')
         fig.colorbar(pos, ax=ax[2])
         plt.show()
 

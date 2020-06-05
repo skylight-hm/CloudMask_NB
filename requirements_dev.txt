@@ -14,5 +14,13 @@ xarray~=0.12.1
 numexpr~=2.6.9
 h5py~=2.9.0
 typing~=3.6.6
-matplotlib~=3.1.2
+matplotlib
 setuptools~=41.6.0
+
+metesatpy~=0.1.0
+datetime~=4.3
+tqdm~=4.31.1
+pysftp~=0.2.9
+pandas~=0.24.2
+dask~=1.1.4
+tifffile~=2019.7.26
