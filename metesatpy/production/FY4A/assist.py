@@ -78,33 +78,33 @@ class FY4NavFile(object):
         return nb_sft
 
     def get_dem(self) -> np.ndarray:
-        nav_f = h5py.File(self.fy4_nav_file_path)
+        nav_f = h5py.File(self.fy4_nav_file_path, 'r')
         dem = nav_f['pixel_surface_elevation'][...]
         return dem
 
     def get_coastal(self) -> np.ndarray:
-        nav_f = h5py.File(self.fy4_nav_file_path)
+        nav_f = h5py.File(self.fy4_nav_file_path, 'r')
         coast = nav_f['pixel_coast_mask'][...]
         return coast
 
     def get_space_mask(self, b=False) -> np.ndarray:
-        nav_f = h5py.File(self.fy4_nav_file_path)
+        nav_f = h5py.File(self.fy4_nav_file_path, 'r')
         space_mask = nav_f['pixel_space_mask'][...]
         if b:
             space_mask = space_mask.astype(np.bool)
         return space_mask
 
     def get_latitude(self) -> np.ndarray:
-        nav_f = h5py.File(self.fy4_nav_file_path)
+        nav_f = h5py.File(self.fy4_nav_file_path, 'r')
         latitude = nav_f['pixel_latitude'][...]
         return latitude
 
     def get_longitude(self) -> np.ndarray:
-        nav_f = h5py.File(self.fy4_nav_file_path)
+        nav_f = h5py.File(self.fy4_nav_file_path, 'r')
         longitude = nav_f['pixel_longitude'][...]
         return longitude
 
     def get_snow_mask(self):
-        nav_f = h5py.File(self.fy4_nav_file_path)
+        nav_f = h5py.File(self.fy4_nav_file_path, 'r')
         snow = nav_f['pixel_snow_mask'][...]
         return snow
