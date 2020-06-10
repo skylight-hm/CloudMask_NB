@@ -62,13 +62,7 @@ class Ref063Min3x3Day(NBClassifier):
     lut_file_name: str = 'Ref_063_Min_3x3_Day.nc'
 
     def __init__(self, **kwargs):
-        super(Ref063Min3x3Day, self).__init__()
-        lut_file_path = kwargs.get('lut_file_path', os.path.join(lut_root_dir, self.lut_file_name))
-        self._load_lut(lut_file_path)
-
-    def _load_lut(self, lut_file_path: str = None):
-        if lut_file_path:
-            self.lut_ds = xr.open_dataset(lut_file_path)
+        super(Ref063Min3x3Day, self).__init__(**kwargs)
 
     def prepare_feature(self, ref_063: np.ma.masked_array):
         ref_063_min = cal_nxn_indices(ref_063, func=np.min)  # 2748 x 2748
@@ -131,13 +125,7 @@ class TStd(NBClassifier):
     lut_file_name: str = 'T_Std.nc'
 
     def __init__(self, **kwargs):
-        super(TStd, self).__init__()
-        lut_file_path = kwargs.get('lut_file_path', os.path.join(lut_root_dir, self.lut_file_name))
-        self._load_lut(lut_file_path)
-
-    def _load_lut(self, lut_file_path: str = None):
-        if lut_file_path:
-            self.lut_ds = xr.open_dataset(lut_file_path)
+        super(TStd, self).__init__(**kwargs)
 
     def prepare_feature(self, bt_1080: np.ma.masked_array):
         bt_1080_std = cal_nxn_indices(bt_1080, func=np.std)  # 2748 x 2748
@@ -203,9 +191,7 @@ class Bt1185(NBClassifier):
     lut_file_name: str = 'Btd_11_85.nc'
 
     def __init__(self, **kwargs):
-        super(Bt1185, self).__init__()
-        lut_file_path = kwargs.get('lut_file_path', os.path.join(lut_root_dir, self.lut_file_name))
-        self._load_lut(lut_file_path)
+        super(Bt1185, self).__init__(**kwargs)
 
     def _load_lut(self, lut_file_path: str = None):
         if lut_file_path:
@@ -265,13 +251,7 @@ class RefRatioDay(NBClassifier):
     lut_file_name: str = 'Ref_Ratio_Day.nc'
 
     def __init__(self, **kwargs):
-        super(RefRatioDay, self).__init__()
-        lut_file_path = kwargs.get('lut_file_path', os.path.join(lut_root_dir, self.lut_file_name))
-        self._load_lut(lut_file_path)
-
-    def _load_lut(self, lut_file_path: str = None):
-        if lut_file_path:
-            self.lut_ds = xr.open_dataset(lut_file_path)
+        super(RefRatioDay, self).__init__(**kwargs)
 
     def prepare_feature(self, ref_063: np.ma.masked_array, ref_086: np.ma.masked_array):
         feature = ref_086 / ref_063
@@ -349,9 +329,7 @@ class Ref138Day(NBClassifier):
     lut_file_name: str = 'Ref_138_Day.nc'
 
     def __init__(self, **kwargs):
-        super(Ref138Day, self).__init__()
-        lut_file_path = kwargs.get('lut_file_path', os.path.join(lut_root_dir, self.lut_file_name))
-        self._load_lut(lut_file_path)
+        super(Ref138Day, self).__init__(**kwargs)
 
     def _load_lut(self, lut_file_path: str = None):
         if lut_file_path:
@@ -430,9 +408,7 @@ class NdsiDay(NBClassifier):
     lut_file_name: str = 'Ndsi_Day.nc'
 
     def __init__(self, **kwargs):
-        super(NdsiDay, self).__init__()
-        lut_file_path = kwargs.get('lut_file_path', os.path.join(lut_root_dir, self.lut_file_name))
-        self._load_lut(lut_file_path)
+        super(NdsiDay, self).__init__(**kwargs)
 
     def _load_lut(self, lut_file_path: str = None):
         if lut_file_path:
@@ -522,9 +498,7 @@ class Ref063Day(NBClassifier):
     lut_file_name: str = 'Ref_063_Day.nc'
 
     def __init__(self, **kwargs):
-        super(Ref063Day, self).__init__()
-        lut_file_path = kwargs.get('lut_file_path', os.path.join(lut_root_dir, self.lut_file_name))
-        self._load_lut(lut_file_path)
+        super(Ref063Day, self).__init__(**kwargs)
 
     def _load_lut(self, lut_file_path: str = None):
         if lut_file_path:
@@ -621,13 +595,7 @@ class T11(NBClassifier):
     lut_file_name: str = 'T_11.nc'
 
     def __init__(self, **kwargs):
-        super(T11, self).__init__()
-        lut_file_path = kwargs.get('lut_file_path', os.path.join(lut_root_dir, self.lut_file_name))
-        self._load_lut(lut_file_path)
-
-    def _load_lut(self, lut_file_path: str = None):
-        if lut_file_path:
-            self.lut_ds = xr.open_dataset(lut_file_path)
+        super(T11, self).__init__(**kwargs)
 
     def prepare_feature(self, bt_1080: np.ma.masked_array):
         feature = bt_1080
@@ -678,9 +646,7 @@ class TmaxT(NBClassifier):
     lut_file_name: str = 'Tmax_T.nc'
 
     def __init__(self, **kwargs):
-        super(TmaxT, self).__init__()
-        lut_file_path = kwargs.get('lut_file_path', os.path.join(lut_root_dir, self.lut_file_name))
-        self._load_lut(lut_file_path)
+        super(TmaxT, self).__init__(**kwargs)
 
     def _load_lut(self, lut_file_path: str = None):
         if lut_file_path:
@@ -742,13 +708,8 @@ class Btd37511Night(NBClassifier):
     lut_file_name: str = 'Btd_375_11_Night.nc'
 
     def __init__(self, **kwargs):
-        super(Btd37511Night, self).__init__()
-        lut_file_path = kwargs.get('lut_file_path', os.path.join(lut_root_dir, self.lut_file_name))
-        self._load_lut(lut_file_path)
-
-    def _load_lut(self, lut_file_path: str = None):
-        if lut_file_path:
-            self.lut_ds = xr.open_dataset(lut_file_path)
+        super(Btd37511Night, self).__init__(**kwargs)
+        
 
     def prepare_feature(self, bt_375: np.ma.masked_array, bt_1080: np.ma.masked_array):
         feature = bt_375 - bt_1080
