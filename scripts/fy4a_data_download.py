@@ -6,6 +6,7 @@ import pysftp
 import datetime
 
 
+
 def download_f4a_agri_l1_4km(start_time, server, out_dir='.'):
     """
     # remote_file_dir = "/FY4/FY4A/AGRI/L1/FDI/DISK/2019/20191010"
@@ -21,8 +22,10 @@ def download_f4a_agri_l1_4km(start_time, server, out_dir='.'):
                                                                                 )
     local_file_dir = out_dir
     local_file_path = os.path.join(local_file_dir, remote_file_name)
+    cnopts = pysftp.CnOpts()
+    cnopts.hostkeys = None 
     if not os.path.exists(local_file_path):
-        sftp = pysftp.Connection(server['host'], username=server['username'], password=server['password'])
+        sftp = pysftp.Connection(server['host'], username=server['username'], password=server['password'], cnopts=cnopts)
         with sftp.cd(remote_file_dir):
             sftp.get(remote_file_name, local_file_path)
         sftp.close()
@@ -44,8 +47,10 @@ def download_f4a_agri_geo_4km(start_time, server, out_dir='.'):
                                                                                 )
     local_file_dir = out_dir
     local_file_path = os.path.join(local_file_dir, remote_file_name)
+    cnopts = pysftp.CnOpts()
+    cnopts.hostkeys = None 
     if not os.path.exists(local_file_path):
-        sftp = pysftp.Connection(server['host'], username=server['username'], password=server['password'])
+        sftp = pysftp.Connection(server['host'], username=server['username'], password=server['password'], cnopts=cnopts)
         with sftp.cd(remote_file_dir):
             sftp.get(remote_file_name, local_file_path)
         sftp.close()
@@ -67,8 +72,10 @@ def download_f4a_agri_clm_4km(start_time, server, out_dir='.'):
                                                                                     )
     local_file_dir = out_dir
     local_file_path = os.path.join(local_file_dir, remote_file_name)
+    cnopts = pysftp.CnOpts()
+    cnopts.hostkeys = None 
     if not os.path.exists(local_file_path):
-        sftp = pysftp.Connection(server['host'], username=server['username'], password=server['password'])
+        sftp = pysftp.Connection(server['host'], username=server['username'], password=server['password'], cnopts=cnopts)
         with sftp.cd(remote_file_dir):
             sftp.get(remote_file_name, local_file_path)
         sftp.close()
@@ -82,16 +89,16 @@ def main():
         'password': 'haiyang'
     }
     fy4_l1_re = "FY4A-_AGRI--_N_DISK_1047E_L1-_FDI-_MULT_NOM_[0-9._]{29}_4000M_V0001.HDF"
-    workspace = r"D:\WorkSpace\20200429\project\data\20200101"
-    out_space = r"D:\WorkSpace\20200429\project\data\%Y%m%d"
+    workspace = "/FY4COMM/NBCLM/data/20200101"
+    out_space = "/FY4COMM/NBCLM/data/%Y%m%d"
     for dir_path, _, file_names in os.walk(workspace):
         for filename in file_names:
             ma = re.match(fy4_l1_re, filename)
             if ma:
                 sdt_str = filename.split('_')[9]
                 start_time_stamp = datetime.datetime.strptime(sdt_str, '%Y%m%d%H%M%S')
-                for i in tqdm.trange(15, 25):
-                    dt_c = start_time_stamp + datetime.timedelta(days=i)
+                for i in tqdm.trange(0, 366):
+                    dt_c = start_time_stamp - datetime.timedelta(days=i)
                     try:
                         out_dir = dt_c.strftime(out_space)
                         os.makedirs(out_dir, exist_ok=True)
