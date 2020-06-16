@@ -63,16 +63,28 @@ class TestFY4AGEO(unittest.TestCase):
 
 class TestFY4ANav(unittest.TestCase):
 
-    def test_surface(self):
-        nav_file_name = 'fygatNAV.FengYun-4A.xxxxxxx.4km_M1.h5'
+    def test_surface_01(self):
+        nav_file_name = 'fygatNAV.FengYun-4A.xxxxxxx.4km_M01.h5'
         nav_file_path = os.path.join(data_root_dir, nav_file_name)
         fy4_nav = FY4NavFile(nav_file_path)
         sft_nb = fy4_nav.prepare_surface_type_to_cspp()
+        import tifffile as tiff
+        tiff.imwrite('sft_01.tif', sft_nb)
+        plt.imshow(sft_nb)
+        plt.show()
+
+    def test_surface_06(self):
+        nav_file_name = 'fygatNAV.FengYun-4A.xxxxxxx.4km_M06.h5'
+        nav_file_path = os.path.join(data_root_dir, nav_file_name)
+        fy4_nav = FY4NavFile(nav_file_path)
+        sft_nb = fy4_nav.prepare_surface_type_to_cspp()
+        import tifffile as tiff
+        tiff.imwrite('sft_06.tif', sft_nb)
         plt.imshow(sft_nb)
         plt.show()
 
     def test_snow_mask(self):
-        nav_file_name = 'fygatNAV.FengYun-4A.xxxxxxx.4km_M1.h5'
+        nav_file_name = 'fygatNAV.FengYun-4A.xxxxxxx.4km_M01.h5'
         nav_file_path = os.path.join(data_root_dir, nav_file_name)
         fy4_nav = FY4NavFile(nav_file_path)
         snow_mask = fy4_nav.get_snow_mask()
