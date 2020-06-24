@@ -766,9 +766,7 @@ class RefStd(NBClassifier):
     lut_file_name: str = 'Ref_Std.nc'
 
     def __init__(self, **kwargs):
-        super(RefStd, self).__init__()
-        lut_file_path = kwargs.get('lut_file_path', os.path.join(lut_root_dir, self.lut_file_name))
-        self._load_lut(lut_file_path)
+        super(RefStd, self).__init__(**kwargs)
 
     def _load_lut(self, lut_file_path: str = None):
         if lut_file_path:
@@ -834,13 +832,7 @@ class Emiss375Day(NBClassifier):
     lut_file_name: str = 'Emiss_375_Day.nc'
 
     def __init__(self, **kwargs):
-        super(Emiss375Day, self).__init__()
-        lut_file_path = kwargs.get('lut_file_path', os.path.join(lut_root_dir, self.lut_file_name))
-        self._load_lut(lut_file_path)
-
-    def _load_lut(self, lut_file_path: str = None):
-        if lut_file_path:
-            self.lut_ds = xr.open_dataset(lut_file_path)
+        super(Emiss375Day, self).__init__(**kwargs)
 
     def prepare_feature(self, ems_375: np.ma.masked_array):
         feature = ems_375
@@ -894,13 +886,7 @@ class Emiss375Night(NBClassifier):
     lut_file_name: str = 'Emiss_375_Night.nc'
 
     def __init__(self, **kwargs):
-        super(Emiss375Night, self).__init__()
-        lut_file_path = kwargs.get('lut_file_path', os.path.join(lut_root_dir, self.lut_file_name))
-        self._load_lut(lut_file_path)
-
-    def _load_lut(self, lut_file_path: str = None):
-        if lut_file_path:
-            self.lut_ds = xr.open_dataset(lut_file_path)
+        super(Emiss375Night, self).__init__(**kwargs)
 
     def prepare_feature(self, ems_375: np.ma.masked_array):
         feature = ems_375
@@ -953,13 +939,7 @@ class GeoColorRGB(NBClassifier):
     lut_file_name: str = 'GeoColorRGB.nc'
 
     def __init__(self, **kwargs):
-        super(GeoColorRGB, self).__init__()
-        lut_file_path = kwargs.get('lut_file_path', os.path.join(lut_root_dir, self.lut_file_name))
-        self._load_lut(lut_file_path)
-
-    def _load_lut(self, lut_file_path: str = None):
-        if lut_file_path:
-            self.lut_ds = xr.open_dataset(lut_file_path)
+        super(GeoColorRGB, self).__init__(**kwargs)
 
     def prepare_feature(self, geo_color_tiff_path):
         feature = tiff.imread(geo_color_tiff_path)
