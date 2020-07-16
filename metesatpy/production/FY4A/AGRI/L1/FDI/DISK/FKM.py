@@ -143,6 +143,8 @@ class FY4AAGRIL1FDIDISK4KM(FY4AAGRIL1FDIDISKProduction):
                 # idx data set name
                 idx_ds_name = channel_cursor.data_ds_name
                 idx_data = self._decorate_ds_data(f[idx_ds_name])
+                # temporal filter
+                idx_data.mask[idx_data.data>60000] = True
                 # cal data set name
                 cal_ds_name = channel_cursor.cal_ds_name
                 cal_data = self._decorate_ds_data(f[cal_ds_name])
