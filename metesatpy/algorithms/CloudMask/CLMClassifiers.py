@@ -39,7 +39,7 @@ class NBClassifier(object):
             value = np.linspace(bin_start, bin_end, 101)
             bin_idx = (value - bin_start) / delta_bin
             bin_idx_i = bin_idx.astype(np.int)
-            bin_idx_i = np.clip(bin_idx_i, 1, 100)
+            bin_idx_i = np.clip(bin_idx_i.data, 1, 100)
             r_da = self.lut_ds['class_cond_ratio_reg']
             r_v = r_da.data[sft_idx - 1, bin_idx_i - 1]  # sft, bin_idx start from 1
             prior_yes = self.lut_ds['prior_yes'].data[sft_idx - 1]  # sft start from 1
@@ -103,7 +103,7 @@ class Ref063Min3x3Day(NBClassifier):
         delta_bin = self.lut_ds['delta_bin'].data[sft[valid_mask] - 1]  # sft start from 1
         bin_idx = (x[valid_mask] - bin_start) / delta_bin
         bin_idx_i = bin_idx.astype(np.int)
-        bin_idx_i = np.clip(bin_idx_i, 1, 100)
+        bin_idx_i = np.clip(bin_idx_i.data, 1, 100)
         r_da = self.lut_ds['class_cond_ratio_reg']
         r_v = r_da.data[sft[valid_mask] - 1, bin_idx_i - 1]  # sft, bin_idx start from 1
         if space_mask is None:
@@ -169,7 +169,7 @@ class TStd(NBClassifier):
         delta_bin = self.lut_ds['delta_bin'].data[sft[valid_mask] - 1]  # sft start from 1
         bin_idx = (x[valid_mask] - bin_start) / delta_bin
         bin_idx_i = bin_idx.astype(np.int)
-        bin_idx_i = np.clip(bin_idx_i, 1, 100)
+        bin_idx_i = np.clip(bin_idx_i.data, 1, 100)
         r_da = self.lut_ds['class_cond_ratio_reg']
         r_v = r_da.data[sft[valid_mask] - 1, bin_idx_i - 1]  # sft, bin_idx start from 1
         if space_mask is None:
@@ -229,7 +229,7 @@ class Bt1185(NBClassifier):
         delta_bin = self.lut_ds['delta_bin'].data[sft[valid_mask] - 1]  # sft start from 1
         bin_idx = (x[valid_mask] - bin_start) / delta_bin
         bin_idx_i = bin_idx.astype(np.int)
-        bin_idx_i = np.clip(bin_idx_i, 1, 100)
+        bin_idx_i = np.clip(bin_idx_i.data, 1, 100)
         r_da = self.lut_ds['class_cond_ratio_reg']
         r_v = r_da.data[sft[valid_mask] - 1, bin_idx_i - 1]  # sft, bin_idx start from 1
         if space_mask is None:
@@ -307,7 +307,7 @@ class RefRatioDay(NBClassifier):
         delta_bin = self.lut_ds['delta_bin'].data[sft[valid_mask] - 1]  # sft start from 1
         bin_idx = (x[valid_mask] - bin_start) / delta_bin
         bin_idx_i = bin_idx.astype(np.int)
-        bin_idx_i = np.clip(bin_idx_i, 1, 100)
+        bin_idx_i = np.clip(bin_idx_i.data, 1, 100)
         r_da = self.lut_ds['class_cond_ratio_reg']
         r_v = r_da.data[sft[valid_mask] - 1, bin_idx_i - 1]  # sft, bin_idx start from 1
         if space_mask is None:
@@ -386,7 +386,7 @@ class Ref138Day(NBClassifier):
         delta_bin = self.lut_ds['delta_bin'].data[sft[valid_mask] - 1]  # sft start from 1
         bin_idx = (x[valid_mask] - bin_start) / delta_bin
         bin_idx_i = bin_idx.astype(np.int)
-        bin_idx_i = np.clip(bin_idx_i, 1, 100)
+        bin_idx_i = np.clip(bin_idx_i.data, 1, 100)
         r_da = self.lut_ds['class_cond_ratio_reg']
         r_v = r_da.data[sft[valid_mask] - 1, bin_idx_i - 1]  # sft, bin_idx start from 1
         if space_mask is None:
@@ -476,7 +476,7 @@ class NdsiDay(NBClassifier):
         delta_bin = self.lut_ds['delta_bin'].data[sft[valid_mask] - 1]  # sft start from 1
         bin_idx = (x[valid_mask] - bin_start) / delta_bin
         bin_idx_i = bin_idx.astype(np.int)
-        bin_idx_i = np.clip(bin_idx_i, 1, 100)
+        bin_idx_i = np.clip(bin_idx_i.data, 1, 100)
         r_da = self.lut_ds['class_cond_ratio_reg']
         r_v = r_da.data[sft[valid_mask] - 1, bin_idx_i - 1]  # sft, bin_idx start from 1
         if space_mask is None:
@@ -573,7 +573,7 @@ class Ref063Day(NBClassifier):
         delta_bin = self.lut_ds['delta_bin'].data[sft[valid_mask] - 1]  # sft start from 1
         bin_idx = (x[valid_mask] - bin_start) / delta_bin
         bin_idx_i = bin_idx.astype(np.int)
-        bin_idx_i = np.clip(bin_idx_i, 1, 100)
+        bin_idx_i = np.clip(bin_idx_i.data, 1, 100)
         r_da = self.lut_ds['class_cond_ratio_reg']
         r_v = r_da.data[sft[valid_mask] - 1, bin_idx_i - 1]  # sft, bin_idx start from 1
         if space_mask is None:
@@ -624,7 +624,7 @@ class T11(NBClassifier):
         delta_bin = self.lut_ds['delta_bin'].data[sft[valid_mask] - 1]  # sft start from 1
         bin_idx = (x[valid_mask] - bin_start) / delta_bin
         bin_idx_i = bin_idx.astype(np.int)
-        bin_idx_i = np.clip(bin_idx_i, 1, 100)
+        bin_idx_i = np.clip(bin_idx_i.data, 1, 100)
         r_da = self.lut_ds['class_cond_ratio_reg']
         r_v = r_da.data[sft[valid_mask] - 1, bin_idx_i - 1]  # sft, bin_idx start from 1
         if space_mask is None:
@@ -686,7 +686,7 @@ class TmaxT(NBClassifier):
         delta_bin = self.lut_ds['delta_bin'].data[sft[valid_mask] - 1]  # sft start from 1
         bin_idx = (x[valid_mask] - bin_start) / delta_bin
         bin_idx_i = bin_idx.astype(np.int)
-        bin_idx_i = np.clip(bin_idx_i, 1, 100)
+        bin_idx_i = np.clip(bin_idx_i.data, 1, 100)
         r_da = self.lut_ds['class_cond_ratio_reg']
         r_v = r_da.data[sft[valid_mask] - 1, bin_idx_i - 1]  # sft, bin_idx start from 1
         if space_mask is None:
@@ -744,7 +744,7 @@ class Btd37511Night(NBClassifier):
         delta_bin = self.lut_ds['delta_bin'].data[sft[valid_mask] - 1]  # sft start from 1
         bin_idx = (x[valid_mask] - bin_start) / delta_bin
         bin_idx_i = bin_idx.astype(np.int)
-        bin_idx_i = np.clip(bin_idx_i, 1, 100)
+        bin_idx_i = np.clip(bin_idx_i.data, 1, 100)
         r_da = self.lut_ds['class_cond_ratio_reg']
         r_v = r_da.data[sft[valid_mask] - 1, bin_idx_i - 1]  # sft, bin_idx start from 1
         if space_mask is None:
@@ -810,7 +810,7 @@ class RefStd(NBClassifier):
         delta_bin = self.lut_ds['delta_bin'].data[sft[valid_mask] - 1]  # sft start from 1
         bin_idx = (x[valid_mask] - bin_start) / delta_bin
         bin_idx_i = bin_idx.astype(np.int)
-        bin_idx_i = np.clip(bin_idx_i, 1, 100)
+        bin_idx_i = np.clip(bin_idx_i.data, 1, 100)
         r_da = self.lut_ds['class_cond_ratio_reg']
         r_v = r_da.data[sft[valid_mask] - 1, bin_idx_i - 1]  # sft, bin_idx start from 1
         if space_mask is None:
@@ -864,7 +864,7 @@ class Emiss375Day(NBClassifier):
         delta_bin = self.lut_ds['delta_bin'].data[sft[valid_mask] - 1]  # sft start from 1
         bin_idx = (x[valid_mask] - bin_start) / delta_bin
         bin_idx_i = bin_idx.astype(np.int)
-        bin_idx_i = np.clip(bin_idx_i, 1, 100)
+        bin_idx_i = np.clip(bin_idx_i.data, 1, 100)
         r_da = self.lut_ds['class_cond_ratio_reg']
         r_v = r_da.data[sft[valid_mask] - 1, bin_idx_i - 1]  # sft, bin_idx start from 1
         if space_mask is None:
@@ -917,7 +917,7 @@ class Emiss375Night(NBClassifier):
         delta_bin = self.lut_ds['delta_bin'].data[sft[valid_mask] - 1]  # sft start from 1
         bin_idx = (x[valid_mask] - bin_start) / delta_bin
         bin_idx_i = bin_idx.astype(np.int)
-        bin_idx_i = np.clip(bin_idx_i, 1, 100)
+        bin_idx_i = np.clip(bin_idx_i.data, 1, 100)
         r_da = self.lut_ds['class_cond_ratio_reg']
         r_v = r_da.data[sft[valid_mask] - 1, bin_idx_i - 1]  # sft, bin_idx start from 1
         if space_mask is None:
