@@ -1,16 +1,14 @@
 import os
 import argparse
-# import click
 import tifffile as tiff
 import numpy as np
+
+import sys
+sys.path.append('/FY4COMM/NBCLM/metesatpy')
 
 from metesatpy.production.FY4A import FY4NavFile, FY4AAGRIL1FDIDISK4KM, FY4AAGRIL1GEODISK4KM, FY4AAGRICLM4KM
 from metesatpy.algorithms.CloudMask import TStd, Bt1185, T11, Btd37511Night, TmaxT, Emiss375Day, Emiss375Night, GeoColorRGB
 
-# @click.command()
-# @click.argument('agri_l1_file_path', type=str, help='fy4a agri l1 file path.')
-# @click.argument('agri_geo_file_path', type=str, help='fy4a agri geo file path.')
-# @click.argument('agri_clm_tif_path', type=str, help='fy4a agri clm tif path.')
 def detect_cloud_mask(agri_l1_file_path, agri_geo_file_path, agri_clm_tif_path):
     
     fy4_l1 = FY4AAGRIL1FDIDISK4KM(agri_l1_file_path)
