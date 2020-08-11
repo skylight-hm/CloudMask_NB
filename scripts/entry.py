@@ -4,18 +4,21 @@ import tifffile as tiff
 import numpy as np
 
 import sys
+
 sys.path.append('/FY4COMM/NBCLM/metesatpy')
 
 from metesatpy.production.FY4A import FY4NavFile, FY4AAGRIL1FDIDISK4KM, FY4AAGRIL1GEODISK4KM, FY4AAGRICLM4KM
-from metesatpy.algorithms.CloudMask import TStd, Bt1185, T11, Btd37511Night, TmaxT, Emiss375Day, Emiss375Night, GeoColorRGB
+from metesatpy.algorithms.CloudMask import TStd, Bt1185, T11, Btd37511Night, TmaxT, Emiss375Day, Emiss375Night, \
+    GeoColorRGB
+
 
 def detect_cloud_mask(agri_l1_file_path, agri_geo_file_path, agri_clm_tif_path):
-    
     fy4_l1 = FY4AAGRIL1FDIDISK4KM(agri_l1_file_path)
     fy4_geo = FY4AAGRIL1GEODISK4KM(agri_geo_file_path)
     month = fy4_l1.start_time_stamp.month
 
-    fy4_nav_file_path = os.path.join('/FY4COMM/NBCLM/data', 'Assist', 'fygatNAV.FengYun-4A.xxxxxxx.4km_M%.2d.h5' % month)
+    fy4_nav_file_path = os.path.join('/FY4COMM/NBCLM/data', 'Assist',
+                                     'fygatNAV.FengYun-4A.xxxxxxx.4km_M%.2d.h5' % month)
 
     fy4_nav = FY4NavFile(fy4_nav_file_path)
 
@@ -28,14 +31,14 @@ def detect_cloud_mask(agri_l1_file_path, agri_geo_file_path, agri_clm_tif_path):
     coastal = fy4_nav.get_coastal()
     coastal_mask = coastal > 0
     space_mask = fy4_nav.get_space_mask(b=True)
-    
+
     sun_zen = fy4_geo.get_sun_zenith()
-    
+
     bt_372 = fy4_l1.get_band_by_channel('bt_372_low')
     ems_372 = fy4_l1.get_band_by_channel('ems_372')
     bt_850 = fy4_l1.get_band_by_channel('bt_850')
     bt_1080 = fy4_l1.get_band_by_channel('bt_1080')
-    
+
     r = []
     # 1 TStd
     tstd = TStd(lut_file_path=r"/FY4COMM/NBCLM/data/LUT/T_Std_M%.2d_handfix.nc" % month)
@@ -86,23 +89,24 @@ def detect_cloud_mask(agri_l1_file_path, agri_geo_file_path, agri_clm_tif_path):
     valid_mask = emiss4night.prepare_valid_mask(ems_372, sft, sun_zen, space_mask)
     ratio, prob = emiss4night.infer(x, sft, valid_mask, space_mask, prob=True)
     r.append(ratio)
-    
+
     # 融合
     r_s = np.stack(r)
     r_s_p = np.prod(r_s, 0)
-    prior_yes = t11.lut_ds['prior_yes'].data[sft[sft>0]-1]
+    prior_yes = t11.lut_ds['prior_yes'].data[sft[sft > 0] - 1]
     p = np.ma.masked_array(np.zeros(x.shape), space_mask)
-    p[sft>0] = 1.0 / (1.0 + r_s_p[sft>0] / prior_yes - r_s_p[sft>0])
-    
+    p[sft > 0] = 1.0 / (1.0 + r_s_p[sft > 0] / prior_yes - r_s_p[sft > 0])
+
     space_mask_i = space_mask.astype(np.int)
     dig_p = np.ones(space_mask.shape, np.uint8) * 4
-    dig_p[p>=0.9] = 0
-    dig_p[np.logical_and(p>=0.5 ,p<0.9)] = 1
-    dig_p[np.logical_and(p>0.1 ,p<0.5)] = 2
-    dig_p[p<=0.1] = 3
-    dig_p[space_mask_i==1] = 126
+    dig_p[p >= 0.9] = 0
+    dig_p[np.logical_and(p >= 0.5, p < 0.9)] = 1
+    dig_p[np.logical_and(p > 0.1, p < 0.5)] = 2
+    dig_p[p <= 0.1] = 3
+    dig_p[space_mask_i == 1] = 126
     tiff.imwrite(agri_clm_tif_path, dig_p)
     return 0
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Navie Bayes Cloud Mask Alghrithum for fy4a agri.')
