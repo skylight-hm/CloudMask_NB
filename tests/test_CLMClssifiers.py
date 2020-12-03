@@ -13,20 +13,22 @@ import matplotlib.pyplot as plt
 
 data_root_dir = os.getenv('METEPY_DATA_PATH', 'data')
 
+plt.rcParams['font.sans-serif'] = ['SimHei']
+plt.rcParams['axes.unicode_minus'] = False
 
 class TestCLMClassifiers(unittest.TestCase):
 
     def setUp(self) -> None:
         agri_l1_file_name = 'FY4A-_AGRI--_N_DISK_1047E_L1-_FDI-_MULT_' \
-                            'NOM_20200101100000_20200101101459_4000M_V0001.HDF'
+                            'NOM_20200101120000_20200101121459_4000M_V0001.HDF'
         agri_l1_file_path = os.path.join(data_root_dir, '20200101', agri_l1_file_name)
 
         agri_geo_file_name = 'FY4A-_AGRI--_N_DISK_1047E_L1-_GEO-_MULT_' \
-                             'NOM_20200101100000_20200101101459_4000M_V0001.HDF'
+                             'NOM_20200101120000_20200101121459_4000M_V0001.HDF'
         agri_geo_file_path = os.path.join(data_root_dir, '20200101', agri_geo_file_name)
 
         agri_clm_file_name = 'FY4A-_AGRI--_N_DISK_1047E_L2-_CLM-_MULT_' \
-                             'NOM_20200101100000_20200101101459_4000M_V0001.NC'
+                             'NOM_20200101120000_20200101121459_4000M_V0001.NC'
         agri_clm_file_path = os.path.join(data_root_dir, '20200101', agri_clm_file_name)
 
         fy4_nav_file_name = 'fygatNAV.FengYun-4A.xxxxxxx.4km_M1.h5'
@@ -456,9 +458,13 @@ class TestCLMClassifiers(unittest.TestCase):
         ax.scatter_density(xs[clm_idx], ys[clm_idx], color='red', label='Cloudy')
         ax.scatter_density(xs[mid_idx], ys[mid_idx], color='yellow', label='Uncertain')
         ax.scatter_density(xs[clr_idx], ys[clr_idx], color='blue', label='Clear')
-        ax.set_xlabel('Pseudo 4um Emissivity')
-        ax.set_ylabel('Solar Zenith')
-        plt.title('{} scatter density plot '.format(str(self.fy4_l1.start_time_stamp)))
+        ax.set_xlim(0, 5)
+        # ax.set_xlabel('Pseudo 4um Emissivity')
+        ax.set_xlabel('伪4μm发射率')
+        # ax.set_ylabel('Solar Zenith')
+        ax.set_ylabel('太阳天顶角')
+        # plt.title('{} scatter density plot '.format(str(self.fy4_l1.start_time_stamp)))
+        fig.savefig(r'D:\WorkSpace\20200909\paper_pic\emiss4_dist_12.png', dpi=300, bbox_inches='tight')
         plt.show()
 
     def test_Emiss4Day(self):
@@ -586,11 +592,12 @@ class TestCLMClassifiers(unittest.TestCase):
         fig.savefig(lut_file_name.replace('nc', 'png'), dpi=300)
 
     def test_T11_plot(self):
-        lut_file_name = 'T_11_60.nc'
+        plt.style.use('ggplot')
+        lut_file_name = 'T_11_M06_handfix.nc'
         lut_file_path = os.path.join(data_root_dir, 'LUT', lut_file_name)
         t11 = T11(lut_file_path=lut_file_path)
         fig = t11.plot()
-        fig.savefig(lut_file_name.replace('nc', 'png'), dpi=300)
+        fig.savefig(lut_file_name.replace('nc', 'png'), dpi=300, bbox_inches='tight')
 
     def test_TmaxT_plot(self):
         lut_file_name = 'Tmax_T_60.nc'

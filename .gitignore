@@ -105,3 +105,4 @@ ENV/
 .vscode/
 .idea/
 .h5
+*.png

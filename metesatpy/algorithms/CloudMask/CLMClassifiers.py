@@ -32,6 +32,16 @@ class NBClassifier(object):
 
     def plot(self, sft_name='all'):
         fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+        color_list = np.asarray([
+            [0, 112, 255, 255],  # 深海
+            [0, 197, 255, 255],  # 浅海
+            [85, 255, 0, 255],  # 陆地
+            [255, 255, 255, 255],  # 积雪
+            [255, 255, 115, 255],  # 北极
+            [255, 0, 195, 255],  # 南极
+            [215, 176, 158, 255],  # 沙漠
+        ]) / 255
+        color_list = color_list.tolist()
         for sft_idx in range(1, 8):
             bin_start = self.lut_ds['bin_start'].data[sft_idx - 1]  # sft start from 1
             delta_bin = self.lut_ds['delta_bin'].data[sft_idx - 1]  # sft start from 1
@@ -44,12 +54,16 @@ class NBClassifier(object):
             r_v = r_da.data[sft_idx - 1, bin_idx_i - 1]  # sft, bin_idx start from 1
             prior_yes = self.lut_ds['prior_yes'].data[sft_idx - 1]  # sft start from 1
             p = 1.0 / (1.0 + r_v / prior_yes - r_v)
-            ax.plot(value, p, marker='o', label=str(self.lut_ds['cspp_sft'].data[sft_idx - 1]))
-            ax.legend()
+            ax.plot(value, p, marker='o', label=str(self.lut_ds['cspp_sft'].data[sft_idx - 1]),
+                    c=color_list[sft_idx-1])
+            ax.set_ylim(-0.05, 1.05)
+            # ax.legend()
 
-        plt.title('probability curve of {}'.format(self.short_name))
-        plt.xlabel('feature value')
-        plt.ylabel('cloudy prob')
+        # plt.title('probability curve of {}'.format(self.short_name))
+        # plt.xlabel('feature value')
+        plt.xlabel('11μm亮温')
+        plt.ylabel('云属概率')
+
         return fig
 
     def infer(self, **kwargs):
@@ -709,7 +723,6 @@ class Btd37511Night(NBClassifier):
 
     def __init__(self, **kwargs):
         super(Btd37511Night, self).__init__(**kwargs)
-        
 
     def prepare_feature(self, bt_375: np.ma.masked_array, bt_1080: np.ma.masked_array):
         feature = bt_375 - bt_1080
