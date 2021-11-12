@@ -1,1 +1,0 @@
-from .FKM import FY4AAGRIL1FDIDISK4KM
