@@ -1,53 +1,33 @@
-#!/usr/bin/env python
+from pathlib import Path
 
-"""The setup script."""
+from setuptools import find_packages
+from setuptools import setup
 
-from setuptools import setup, find_packages
 
-with open('README.md', encoding='UTF-8') as readme_file:
-    readme = readme_file.read()
+def version():
+    """ Get the local package version. """
+    namespace = {}
+    path = Path("CloudMask_NB", "__version__.py")
+    exec(path.read_text(), namespace)
+    return namespace["__version__"]
 
-with open('HISTORY.rst', encoding='UTF-8') as history_file:
-    history = history_file.read()
 
-requirements = []
+def main() -> int:
+    """ Execute the setup command.
+    """
+    _config = {
+        "name": "CloudMask_NB",
+        "author": "skylight-hm",
+        "author_email": "mzlapqowjf321@qq.com",
+        "packages": ['CloudMask_NB'],
+        "console":["CloudMask_NB = CloudMask_NB.cli:main"]
+    }
+    _config.update({
+        "version": version(),
+    })
+    setup(**_config)
+    return 0
 
-setup_requirements = []
 
-test_requirements = []
-
-setup(
-    author="min han",
-    author_email='abcdefskylight@gmail.com',
-    python_requires='>=3.5',
-    classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: Apache Software License',
-        'Natural Language :: English',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-    ],
-    description="气象卫星抽象库",
-    entry_points={
-        'console_scripts': [
-            'metesatpy=metesatpy.cli:main',
-        ],
-    },
-    install_requires=requirements,
-    license="Apache Software License 2.0",
-    long_description=readme + '\n\n' + history,
-    include_package_data=True,
-    keywords='metesatpy',
-    name='metesatpy',
-    packages=find_packages(include=['metesatpy', 'metesatpy.*']),
-    setup_requires=setup_requirements,
-    test_suite='tests',
-    tests_require=test_requirements,
-    url='https://github.com/skylight-hm/metesatpy',
-    version='0.1.0',
-    zip_safe=False,
-)
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -4,7 +4,10 @@ import os
 
 import matplotlib.pyplot as plt
 
-from metesatpy.production.FY4A import FY4NavFile, FY4AAGRIL1FDIDISK4KM, FY4AAGRICLM4KM, FY4AAGRIL1GEODISK4KM
+from CloudMask_NB.FY4A.NavFKM import FY4NavFile
+from CloudMask_NB.FY4A.GEOFKM import FY4AAGRIL1GEODISK4KM
+from CloudMask_NB.FY4A.FDIFKM import FY4AAGRIL1FDIDISK4KM
+from CloudMask_NB.FY4A.CLMFKM import FY4AAGRICLM4KM
 
 data_root_dir = os.getenv('METEPY_DATA_PATH', 'data')
 

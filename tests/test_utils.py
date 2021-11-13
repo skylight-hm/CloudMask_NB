@@ -5,7 +5,7 @@ import xarray as xr
 
 data_root_dir = os.getenv('METEPY_DATA_PATH', 'data')
 
-from metesatpy.utils.cspp import extract_from_cspp_nc
+from CloudMask_NB.utils.cspp import extract_from_cspp_nc
 
 
 class TestUtils(unittest.TestCase):
@@ -27,7 +27,7 @@ class TestUtils(unittest.TestCase):
                 'bins': bins,
                 'class_cond_ratio_reg': ccrr
             })
-            ds_c.to_netcdf(r"D:\WorkSpace\20200429\project\data\LUT\%s.nc" % i)
+            ds_c.to_netcdf("%s.nc" % i)
 
 
 if __name__ == '__main__':

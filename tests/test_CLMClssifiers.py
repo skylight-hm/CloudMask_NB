@@ -2,11 +2,14 @@ import unittest
 
 import os
 
-from metesatpy.production.FY4A import FY4NavFile, FY4AAGRIL1FDIDISK4KM, FY4AAGRIL1GEODISK4KM, FY4AAGRICLM4KM
-from metesatpy.algorithms.CloudMask import Ref063Min3x3Day, TStd, RefRatioDay, Ref138Day, NdsiDay, Ref063Day, Bt1185, \
+from CloudMask_NB.FY4A.NavFKM import FY4NavFile
+from CloudMask_NB.FY4A.GEOFKM import FY4AAGRIL1GEODISK4KM
+from CloudMask_NB.FY4A.FDIFKM import FY4AAGRIL1FDIDISK4KM
+from CloudMask_NB.FY4A.CLMFKM import FY4AAGRICLM4KM
+from CloudMask_NB.FY4A.NavieBayes import Ref063Min3x3Day, TStd, RefRatioDay, Ref138Day, NdsiDay, Ref063Day, Bt1185, \
     T11, Btd37511Night, RefStd, TmaxT, Emiss375Day, Emiss375Night, GeoColorRGB
 
-from metesatpy.utils.cspp import infer_airmass, infer_scat_angle_short
+from CloudMask_NB.utils.cspp import infer_airmass, infer_scat_angle_short
 
 import numpy as np
 import matplotlib.pyplot as plt

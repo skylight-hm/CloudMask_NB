@@ -1,6 +1,6 @@
 {
     "restructuredtext.confPath": "${workspaceFolder}\\docs",
-    "python.pythonPath": "/home/fy4/miniconda3/bin/python",
+    "python.pythonPath": "D:\\Tools\\Anaconda\\envs\\qcp\\python.exe",
     "python.testing.unittestArgs": [
         "-v",
         "-s",
@@ -11,5 +11,5 @@
     "python.testing.pytestEnabled": false,
     "python.testing.nosetestsEnabled": false,
     "python.testing.unittestEnabled": true,
-    "python.formatting.provider": "black"
+    "python.formatting.provider": "yapf"
 }
